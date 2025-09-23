@@ -1,33 +1,31 @@
-version: '3.8'
-
 services:
   # API Gateway / Ingress Service
-  ingress-service:
-    build:
-      context: ./services/ingress-service
-      dockerfile: Dockerfile
-    ports:
-      - "3000:3000"
-    environment:
-      - NODE_ENV=development
-      - PORT=3000
-      - JWT_SECRET=your-super-secret-jwt-key
-      - USERS_SERVICE_URL=http://users-service:3001
-      - ALERTS_SERVICE_URL=http://alerts-service:3002
-      - NOTIFIER_SERVICE_URL=http://notifier-service:3003
-      - REDIS_URL=redis://redis:6379
-    depends_on:
-      - redis
-      - users-service
-      - alerts-service
-      - notifier-service
-    networks:
-      - city-alerts-network
+  # ingress-service:
+  #   build:
+  #     context: ../infra-services/ingress-service/ingress-service
+  #     dockerfile: Dockerfile
+  #   ports:
+  #     - "3000:3000"
+  #   environment:
+  #     - NODE_ENV=development
+  #     - PORT=3000
+  #     - JWT_SECRET=your-super-secret-jwt-key
+  #     - USERS_SERVICE_URL=http://users-service:3001
+  #     - ALERTS_SERVICE_URL=http://alerts-service:3002
+  #     - NOTIFIER_SERVICE_URL=http://notifier-service:3003
+  #     - REDIS_URL=redis://redis:6379
+  #   depends_on:
+  #     - redis
+  #     - users-service
+  #     - alerts-service
+  #     - notifier-service
+  #   networks:
+  #     - city-alerts-network
 
   # Users Service
   users-service:
     build:
-      context: ./services/users-service
+      context: ../core-services/users-service/users-service
       dockerfile: Dockerfile
     ports:
       - "3001:3001"
@@ -40,16 +38,13 @@ services:
     depends_on:
       - postgres
       - redis
-    volumes:
-      - ./services/users-service:/app
-      - /app/node_modules
     networks:
       - city-alerts-network
 
   # Alerts Service
   alerts-service:
     build:
-      context: ./services/alerts-service
+      context: ../core-services/alerts-service/alerts-service
       dockerfile: Dockerfile
     ports:
       - "3002:3002"
@@ -64,16 +59,13 @@ services:
       - mongo
       - redis
       - users-service
-    volumes:
-      - ./services/alerts-service:/app
-      - /app/node_modules
     networks:
       - city-alerts-network
 
   # Notifier Service
   notifier-service:
     build:
-      context: ./services/notifier-service
+      context: ../core-services/notifications-service/notifier-service
       dockerfile: Dockerfile
     ports:
       - "3003:3003"
@@ -87,32 +79,27 @@ services:
       - FCM_SERVER_KEY=your-fcm-server-key
     depends_on:
       - redis
-    volumes:
-      - ./services/notifier-service:/app
-      - /app/node_modules
     networks:
       - city-alerts-network
 
   # Logs Service (Optional)
-  logs-service:
-    build:
-      context: ./services/logs-service
-      dockerfile: Dockerfile
-    ports:
-      - "3004:3004"
-    environment:
-      - NODE_ENV=development
-      - PORT=3004
-      - ELASTICSEARCH_URL=http://elasticsearch:9200
-      - REDIS_URL=redis://redis:6379
-    depends_on:
-      - elasticsearch
-      - redis
-    volumes:
-      - ./services/logs-service:/app
-      - /app/node_modules
-    networks:
-      - city-alerts-network
+  # logs-service:
+  #   build:
+  #     context: ../infra-services/logs-service/logs-service
+  #     dockerfile: Dockerfile
+  #   ports:
+  #     - "3004:3004"
+  #   environment:
+  #     - NODE_ENV=development
+  #     - PORT=3004
+  #     - ELASTICSEARCH_URL=http://elasticsearch:9200
+  #     - REDIS_URL=redis://redis:6379
+  #   depends_on:
+  #     - elasticsearch
+  #     - redis
+  #   networks:
+  #     - city-alerts-network
+  #   # Volumes eliminado para evitar error de ruta
 
   # PostgreSQL Database (Users)
   postgres:
@@ -125,7 +112,6 @@ services:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
-      - ./infra/docker/postgres/init.sql:/docker-entrypoint-initdb.d/init.sql
     networks:
       - city-alerts-network
 

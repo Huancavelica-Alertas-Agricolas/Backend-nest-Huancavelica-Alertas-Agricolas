@@ -1,3 +1,5 @@
 celery
 python-dotenv
 twilio
+sqlalchemy
+psycopg2-binary
