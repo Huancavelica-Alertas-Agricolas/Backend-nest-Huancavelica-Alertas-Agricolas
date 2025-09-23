@@ -172,22 +172,20 @@ city-alerts-backend/
   - 🚫 CORS y seguridad
 
 ### 👥 Users Service
-**Puerto:** 3001
-**Responsabilidades:**
+- **Puerto:** 3001
+- **Responsabilidades:**
   - 👤 Registro y autenticación
   - 📍 Gestión de ubicaciones
   - ⚙️ Preferencias de notificación
   - 👥 Perfiles de usuario
-  - 👤 Miembros del grupo: Juan, Anghelo, Lady, Darío
 
 ### ⚠️ Alerts Service
-**Puerto:** 3002
-**Responsabilidades:**
+- **Puerto:** 3002
+- **Responsabilidades:**
   - 🆕 Creación de alertas
   - 🎯 Geolocalización y targeting
   - 📅 Programación de alertas
   - 📈 Estado y métricas
-  - 🌤️ Integración con WeatherAPI
 
 ### 📢 Notifier Service
 - **Puerto:** 3003
@@ -309,12 +307,8 @@ Este proyecto está bajo la Licencia MIT - ver el archivo [LICENSE](LICENSE) par
 
 ## 👥 Equipo
 
-- **Juan**
-- **Anghelo**
-- **Lady**
-- **Darío**
+- **Desarrollador Principal** - [@Felakz](https://github.com/Felakz)
 
 ---
 
 🚨 **City Alerts Backend** - Sistema de alertas urbanas confiable y escalable
-
