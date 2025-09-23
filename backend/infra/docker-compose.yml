@@ -1,0 +1,193 @@
+version: '3.8'
+
+services:
+  # API Gateway / Ingress Service
+  ingress-service:
+    build:
+      context: ./services/ingress-service
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=development
+      - PORT=3000
+      - JWT_SECRET=your-super-secret-jwt-key
+      - USERS_SERVICE_URL=http://users-service:3001
+      - ALERTS_SERVICE_URL=http://alerts-service:3002
+      - NOTIFIER_SERVICE_URL=http://notifier-service:3003
+      - REDIS_URL=redis://redis:6379
+    depends_on:
+      - redis
+      - users-service
+      - alerts-service
+      - notifier-service
+    networks:
+      - city-alerts-network
+
+  # Users Service
+  users-service:
+    build:
+      context: ./services/users-service
+      dockerfile: Dockerfile
+    ports:
+      - "3001:3001"
+    environment:
+      - NODE_ENV=development
+      - PORT=3001
+      - DATABASE_URL=postgresql://postgres:password@postgres:5432/users_db
+      - JWT_SECRET=your-super-secret-jwt-key
+      - REDIS_URL=redis://redis:6379
+    depends_on:
+      - postgres
+      - redis
+    volumes:
+      - ./services/users-service:/app
+      - /app/node_modules
+    networks:
+      - city-alerts-network
+
+  # Alerts Service
+  alerts-service:
+    build:
+      context: ./services/alerts-service
+      dockerfile: Dockerfile
+    ports:
+      - "3002:3002"
+    environment:
+      - NODE_ENV=development
+      - PORT=3002
+      - MONGODB_URL=mongodb://mongo:27017/alerts_db
+      - REDIS_URL=redis://redis:6379
+      - OPENWEATHER_API_KEY=your-openweather-api-key
+      - USERS_SERVICE_URL=http://users-service:3001
+    depends_on:
+      - mongo
+      - redis
+      - users-service
+    volumes:
+      - ./services/alerts-service:/app
+      - /app/node_modules
+    networks:
+      - city-alerts-network
+
+  # Notifier Service
+  notifier-service:
+    build:
+      context: ./services/notifier-service
+      dockerfile: Dockerfile
+    ports:
+      - "3003:3003"
+    environment:
+      - NODE_ENV=development
+      - PORT=3003
+      - REDIS_URL=redis://redis:6379
+      - TWILIO_ACCOUNT_SID=your-twilio-account-sid
+      - TWILIO_AUTH_TOKEN=your-twilio-auth-token
+      - SENDGRID_API_KEY=your-sendgrid-api-key
+      - FCM_SERVER_KEY=your-fcm-server-key
+    depends_on:
+      - redis
+    volumes:
+      - ./services/notifier-service:/app
+      - /app/node_modules
+    networks:
+      - city-alerts-network
+
+  # Logs Service (Optional)
+  logs-service:
+    build:
+      context: ./services/logs-service
+      dockerfile: Dockerfile
+    ports:
+      - "3004:3004"
+    environment:
+      - NODE_ENV=development
+      - PORT=3004
+      - ELASTICSEARCH_URL=http://elasticsearch:9200
+      - REDIS_URL=redis://redis:6379
+    depends_on:
+      - elasticsearch
+      - redis
+    volumes:
+      - ./services/logs-service:/app
+      - /app/node_modules
+    networks:
+      - city-alerts-network
+
+  # PostgreSQL Database (Users)
+  postgres:
+    image: postgres:15-alpine
+    environment:
+      - POSTGRES_DB=users_db
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=password
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./infra/docker/postgres/init.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - city-alerts-network
+
+  # MongoDB Database (Alerts)
+  mongo:
+    image: mongo:6.0
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=admin
+      - MONGO_INITDB_ROOT_PASSWORD=password
+      - MONGO_INITDB_DATABASE=alerts_db
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+      - ./infra/docker/mongo/init.js:/docker-entrypoint-initdb.d/init.js
+    networks:
+      - city-alerts-network
+
+  # Redis (Cache & Message Queue)
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+      - ./infra/docker/redis/redis.conf:/usr/local/etc/redis/redis.conf
+    command: redis-server /usr/local/etc/redis/redis.conf
+    networks:
+      - city-alerts-network
+
+  # Elasticsearch (Logs - Optional)
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.8.0
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+    ports:
+      - "9200:9200"
+    volumes:
+      - elasticsearch_data:/usr/share/elasticsearch/data
+    networks:
+      - city-alerts-network
+
+  # Kibana (Logs Dashboard - Optional)
+  kibana:
+    image: docker.elastic.co/kibana/kibana:8.8.0
+    ports:
+      - "5601:5601"
+    environment:
+      - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
+    depends_on:
+      - elasticsearch
+    networks:
+      - city-alerts-network
+
+volumes:
+  postgres_data:
+  mongo_data:
+  redis_data:
+  elasticsearch_data:
+
+networks:
+  city-alerts-network:
+    driver: bridge
