@@ -95,73 +95,6 @@ Tareas-Huancavelica-AlertasAgricolas/
 └── docs/                           # Documentación técnica
 ```
 
-## 🎨 Wireframes y Diseño del Sistema
-
-### Pantallas Principales
-
-#### 📱 Interfaces Mobile (Agricultores)
-
-**1. Pantalla de Login**
-- Autenticación simple con número de teléfono y PIN
-- Diseño centrado en usabilidad rural
-- Botones de gran tamaño (≥44px) para fácil interacción
-
-**2. Dashboard Principal**
-- Vista general con alertas activas destacadas
-- Widgets de información climática actual
-- Acceso rápido a funciones críticas
-- Navegación inferior intuitiva
-
-**3. Lista de Alertas**
-- Historial completo de alertas meteorológicas
-- Filtros por tipo, severidad y zona geográfica
-- Estados claros mediante códigos de colores
-- Búsqueda rápida integrada
-
-**4. Calendario Agrícola**
-- Planificación de actividades por cultivo
-- Integración con alertas meteorológicas
-- Seguimiento de fechas críticas (siembra, cosecha)
-- Vista mensual con indicadores visuales
-
-**5. Detalle de Alerta**
-- Información meteorológica completa
-- Recomendaciones específicas por cultivo
-- Datos técnicos (temperatura, humedad, viento)
-- Opciones para compartir información
-
-**6. Mercado y Precios**
-- Precios actuales de productos agrícolas locales
-- Tendencias de mercado con gráficos simples
-- Información sobre ferias y puntos de venta
-- Calculadora de costos de producción
-
-**7. Comunidad Agrícola**
-- Foro de intercambio entre agricultores
-- Consultas a técnicos especializados
-- Casos de éxito y experiencias compartidas
-- Grupos por zona geográfica y tipo de cultivo
-
-**8. Configuración de Notificaciones**
-- Personalización de canales (SMS, Telegram, Email)
-- Configuración por tipo de alerta
-- Horarios preferidos para notificaciones
-- Gestión de zonas de interés
-
-#### 💻 Interfaces Desktop (Técnicos y Administradores)
-
-**9. Panel Técnico Especializado**
-- Dashboard con métricas operativas
-- Gestión avanzada de alertas
-- Monitoreo de agricultores activos
-- Herramientas de análisis climático
-
-**10. Panel de Administración**
-- Gestión completa de usuarios del sistema
-- Estadísticas avanzadas de adopción
-- Monitoreo de estado de servicios
-- Configuración de parámetros del sistema
-
 ### 🎯 Características de Diseño
 
 #### Principios de Usabilidad Rural
@@ -234,40 +167,6 @@ docker-compose -f docker-compose.prod.yml logs
 - Sistema de reintentos automáticos
 - Registro de logs de entrega
 
-## 📱 Capturas de Pantalla del Sistema
-
-### Vista Mobile - Dashboard
-```
-┌─────────────────────────────────┐
-│ ☀️ Buenos días, Juan      [🔔3] │
-│ Churcampa • Hoy 15°C, Soleado   │
-├─────────────────────────────────┤
-│ ⚠️ ALERTA CRÍTICA - HELADA      │
-│ 🌡️ -3°C esta noche 2:00-6:00   │
-│ [VER QUÉ HACER] [YA LO HICE ✓]  │
-├─────────────────────────────────┤
-│ [🌡️ Temp] [🌧️ Lluvia]          │
-│ [🥔 Papa]  [🌾 Quinua]          │
-├─────────────────────────────────┤
-│ [🏠][⚠️][📅][💬][👤]           │
-└─────────────────────────────────┘
-```
-
-### Vista Desktop - Panel Técnico
-```
-┌─────────────────────────────────────────────────┐
-│ Panel Técnico - Ing. María Torres         [MT] │
-├─────────────────────────────────────────────────┤
-│ [📊1,247] [⚠️15] [💬89] [🎯73%]                │
-│ Agricultores Alertas Consultas Adopción        │
-├─────────────────────────────────────────────────┤
-│ Alertas Recientes    │ Zonas de Riesgo         │
-│ 🥶 Helada Severa     │ Churcampa     [████] 85%│
-│ 🌧️ Lluvias Mod.     │ Tayacaja     [██  ] 60%│
-│                      │ Acobambilla  [█   ] 25%│
-└─────────────────────────────────────────────────┘
-```
-
 ## 🧪 Testing y Calidad
 
 ### Pruebas Implementadas
@@ -324,36 +223,6 @@ docker-compose -f docker-compose.prod.yml logs
 - **Familias Beneficiadas**: Número de hogares rurales atendidos
 - **Conocimiento Transferido**: Capacitaciones y recursos compartidos
 
-## 🤝 Contribución
-
-Las contribuciones son bienvenidas. Por favor:
-
-1. Fork el proyecto
-2. Crea una rama para tu feature (`git checkout -b feature/nuevaFuncionalidad`)
-3. Commit tus cambios (`git commit -m 'Agrega nueva funcionalidad'`)
-4. Push a la rama (`git push origin feature/nuevaFuncionalidad`)
-5. Abre un Pull Request
-
-### Guías de Contribución
-- **Código Limpio**: Sigue las convenciones de Python PEP 8
-- **Documentación**: Cada función debe estar documentada
-- **Tests**: Incluye pruebas para nuevas funcionalidades
-- **Commit Messages**: Usa el formato Conventional Commits
-
-## 🛠️ Soporte Técnico
-
-### Canales de Soporte
-- **GitHub Issues**: Para reportar bugs y solicitar features
-- **Email Técnico**: soporte@alertas-huancavelica.pe
-- **WhatsApp**: +51 999-888-777 (Solo para agricultores)
-- **Documentación**: Wiki completa en `/docs`
-
-### SLA de Respuesta
-- **Crítico**: <2 horas
-- **Alto**: <8 horas  
-- **Medio**: <24 horas
-- **Bajo**: <72 horas
-
 ## 📈 Roadmap de Desarrollo
 
 ### Versión 2.0 (Q2 2025)
@@ -379,12 +248,6 @@ Este proyecto está bajo la Licencia MIT. Ver el archivo `LICENSE` para más det
 - [Guía de instalación](https://docs.alertas-huancavelica.pe/install)
 - [Portal de Capacitación](https://capacitacion.alertas-huancavelica.pe)
 
-## 🏆 Reconocimientos
-
-- **SENAMHI**: Colaboración técnica y datos meteorológicos
-- **SENASA**: Asesoría en sanidad vegetal  
-- **Universidad Nacional de Huancavelica**: Investigación aplicada
-- **Gobierno Regional de Huancavelica**: Apoyo institucional
 ---
 
 <div align="center">
@@ -396,3 +259,4 @@ Este proyecto está bajo la Licencia MIT. Ver el archivo `LICENSE` para más det
 [![Climate Action](https://img.shields.io/badge/Climate-Action-blue.svg)](https://sdgs.un.org/goals)
 
 </div>
+
