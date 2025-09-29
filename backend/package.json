@@ -1,0 +1,59 @@
+{
+  "name": "city-alerts-backend",
+  "version": "1.0.0",
+  "description": "Sistema de alertas urbanas basado en microservicios",
+  "private": true,
+  "workspaces": [
+    "services/users-service",
+    "services/alerts-service",
+    "services/notifier-service",
+    "services/ingress-service",
+    "services/logs-service",
+    "shared"
+  ],
+  "scripts": {
+    "dev": "concurrently \"npm run dev --workspace=services/ingress-service\" \"npm run dev --workspace=services/users-service\" \"npm run dev --workspace=services/alerts-service\" \"npm run dev --workspace=services/notifier-service\" \"npm run dev --workspace=services/logs-service\"",
+    "build": "npm run build --workspaces",
+    "test": "npm run test --workspaces",
+    "lint": "npm run lint --workspaces",
+    "start": "npm run start --workspaces",
+    "docker:build": "docker-compose build",
+    "docker:up": "docker-compose up -d",
+    "docker:down": "docker-compose down",
+    "docker:logs": "docker-compose logs -f",
+    "migrate": "npm run migrate --workspace=services/users-service && npm run migrate --workspace=services/alerts-service",
+    "seed": "npm run seed --workspace=services/users-service && npm run seed --workspace=services/alerts-service",
+    "clean": "npm run clean --workspaces",
+    "format": "prettier --write \"**/*.{js,ts,json,md}\"",
+    "type-check": "npm run type-check --workspaces"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "concurrently": "^8.2.0",
+    "prettier": "^3.0.0",
+    "typescript": "^5.0.0"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=9.0.0"
+  },
+  "keywords": [
+    "microservices",
+    "alerts",
+    "notifications",
+    "urban",
+    "emergency",
+    "nodejs",
+    "typescript"
+  ],
+  "author": "Felakz <felakz@github.com>",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Felakz/city-alerts-backend.git"
+  },
+  "bugs": {
+    "url": "https://github.com/Felakz/city-alerts-backend/issues"
+  },
+  "homepage": "https://github.com/Felakz/city-alerts-backend#readme"
+}
