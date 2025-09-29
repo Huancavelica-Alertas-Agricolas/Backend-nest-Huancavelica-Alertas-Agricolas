@@ -40,10 +40,10 @@ export class AlertCanal {
   estado: EstadoEnvio;
 
   @Column({ type: 'timestamp', nullable: true })
-  fechaEnvio: Date;
+  fecha_envio: Date;
 
   @Column({ type: 'text', nullable: true })
-  mensajeError: string;
+  mensaje_error: string;
 
   @Column({ type: 'json', nullable: true })
   metadatos: any; // Para almacenar información adicional del envío

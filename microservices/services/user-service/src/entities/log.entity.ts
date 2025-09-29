@@ -1,6 +1,6 @@
 import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn, CreateDateColumn } from "typeorm";
 import { User } from "./user.entity";
-import { Alerta } from "./alerta.entity";
+import { AlertCanal } from "./alert-canal.entity";
 
 export enum TipoLog {
   ALERTA_CREADA = 'alerta_creada',
@@ -27,7 +27,7 @@ export class Log {
   usuarioId: number;
 
   @Column({ nullable: true })
-  alertaId: number;
+  alertaCanalId: number;
 
   @Column({
     type: 'enum',
@@ -55,9 +55,9 @@ export class Log {
   @JoinColumn({ name: 'usuarioId' })
   usuario: User;
 
-  @ManyToOne(() => Alerta, { nullable: true })
-  @JoinColumn({ name: 'alertaId' })
-  alerta: Alerta;
+  @ManyToOne(() => AlertCanal, { nullable: true })
+  @JoinColumn({ name: 'alertaCanalId' })
+  alertaCanal: AlertCanal;
 
   @CreateDateColumn()
   createdAt: Date;

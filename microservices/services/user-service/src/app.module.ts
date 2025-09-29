@@ -13,11 +13,9 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { SnakeNamingStrategy } from 'typeorm-naming-strategies';
 import { UserController } from './user.controller';
 import { UserService } from './user.service';
-import { ProjectService } from './project.service';
 import { EstacionService } from './estacion.service';
 import { AlertaService } from './alerta.service';
 import { User } from './entities/user.entity';
-import { Project } from './entities/project.entity';
 import { Estacion } from './entities/estacion.entity';
 import { Lectura } from './entities/lectura.entity';
 import { Alerta } from './entities/alerta.entity';
@@ -37,15 +35,15 @@ import { PreferenciasNotificacion } from './entities/preferencias-notificacion.e
         username: configService.get('DB_USER', 'admin'),
         password: configService.get('DB_PASSWORD', 'admin'),
         database: configService.get('DB_NAME', 'agro_alertas'),
-        entities: [User, Project, Estacion, Lectura, Alerta, AlertCanal, Log, PreferenciasNotificacion],
+        entities: [User, Estacion, Lectura, Alerta, AlertCanal, Log, PreferenciasNotificacion],
         synchronize: configService.get('NODE_ENV') !== 'production',
         namingStrategy: new SnakeNamingStrategy(),
       }),
       inject: [ConfigService],
     }),
-    TypeOrmModule.forFeature([User, Project, Estacion, Lectura, Alerta, AlertCanal, Log, PreferenciasNotificacion]),
+    TypeOrmModule.forFeature([User, Estacion, Lectura, Alerta, AlertCanal, Log, PreferenciasNotificacion]),
   ],
   controllers: [UserController],
-  providers: [UserService, ProjectService, EstacionService, AlertaService],
+  providers: [UserService, EstacionService, AlertaService],
 })
 export class AppModule {}

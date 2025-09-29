@@ -1,7 +1,6 @@
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
 import { UserService } from './user.service';
-import { ProjectService } from './project.service';
 import { EstacionService } from './estacion.service';
 import { AlertaService } from './alerta.service';
 
@@ -11,7 +10,6 @@ export class UserController {
 
   constructor(
     private readonly userService: UserService,
-    private readonly projectService: ProjectService,
     private readonly estacionService: EstacionService,
     private readonly alertaService: AlertaService,
   ) {}
@@ -45,31 +43,6 @@ export class UserController {
   async deleteUser(@Payload() id: number) {
     this.logger.log(`Deleting user with id: ${id}`);
     return await this.userService.remove(id);
-  }
-
-  // Project operations
-  @MessagePattern('create_project')
-  async createProject(@Payload() projectData: any) {
-    this.logger.log('Creating project:', projectData);
-    return await this.projectService.create(projectData);
-  }
-
-  @MessagePattern('get_project')
-  async getProject(@Payload() id: number) {
-    this.logger.log(`Getting project with id: ${id}`);
-    return await this.projectService.findOne(id);
-  }
-
-  @MessagePattern('get_all_projects')
-  async getAllProjects() {
-    this.logger.log('Getting all projects');
-    return await this.projectService.findAll();
-  }
-
-  @MessagePattern('get_user_projects')
-  async getUserProjects(@Payload() userId: number) {
-    this.logger.log(`Getting projects for user: ${userId}`);
-    return await this.projectService.findByUser(userId);
   }
 
   // Estaciones operations

@@ -1,5 +1,4 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToMany, OneToMany, JoinTable, CreateDateColumn, UpdateDateColumn } from "typeorm";
-import { Project } from "./project.entity";
+import { Entity, PrimaryGeneratedColumn, Column, OneToMany, CreateDateColumn, UpdateDateColumn } from "typeorm";
 import { Alerta } from "./alerta.entity";
 import { Log } from "./log.entity";
 import { PreferenciasNotificacion } from "./preferencias-notificacion.entity";
@@ -26,10 +25,6 @@ export class User {
 
   @Column({ default: true })
   activo: boolean;
-
-  @ManyToMany(() => Project, (project) => project.users)
-  @JoinTable()
-  projects: Project[];
 
   @OneToMany(() => Alerta, (alerta) => alerta.usuario)
   alertas: Alerta[];

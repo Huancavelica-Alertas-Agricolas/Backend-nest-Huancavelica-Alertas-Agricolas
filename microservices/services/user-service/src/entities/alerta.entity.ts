@@ -2,7 +2,6 @@ import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, OneToMany, JoinColum
 import { User } from "./user.entity";
 import { Estacion } from "./estacion.entity";
 import { AlertCanal } from "./alert-canal.entity";
-import { Log } from "./log.entity";
 
 export enum TipoAlerta {
   LLUVIA = 'lluvia',
@@ -69,9 +68,6 @@ export class Alerta {
 
   @OneToMany(() => AlertCanal, (alertCanal) => alertCanal.alerta)
   canales: AlertCanal[];
-
-  @OneToMany(() => Log, (log) => log.alerta)
-  logs: Log[];
 
   @CreateDateColumn()
   createdAt: Date;

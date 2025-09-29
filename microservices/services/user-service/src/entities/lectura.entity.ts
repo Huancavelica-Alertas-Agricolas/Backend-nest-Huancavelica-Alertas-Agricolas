@@ -13,13 +13,13 @@ export class Lectura {
   timestamp: Date;
 
   @Column({ type: 'decimal', precision: 5, scale: 2 })
-  tempMax: number;
+  temp_max: number;
+
+  @Column({ type: 'decimal', precision: 5, scale: 2, nullable: true })
+  temp_min: number;
 
   @Column({ type: 'decimal', precision: 5, scale: 2 })
-  tempMin: number;
-
-  @Column({ type: 'decimal', precision: 5, scale: 2 })
-  lluviaMm: number;
+  lluvia_mm: number;
 
   @Column({ type: 'decimal', precision: 5, scale: 2, nullable: true })
   humedad: number;
