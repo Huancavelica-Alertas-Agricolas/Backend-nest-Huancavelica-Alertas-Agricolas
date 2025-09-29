@@ -1,0 +1,131 @@
+services:
+  # ================================
+  # BASE DE DATOS
+  # ================================
+  postgres:
+    image: postgres:15
+    container_name: agro_postgres
+    environment:
+      POSTGRES_USER: ${DB_USER:-admin}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-admin}
+      POSTGRES_DB: ${DB_NAME:-agro_alertas}
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - agro-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U admin -d agro_alertas"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ================================
+  # MICROSERVICIOS
+  # ================================
+  
+  # API Gateway (Puerto 3000)
+  api-gateway:
+    build:
+      context: ./microservices/gateway/api-gateway
+      dockerfile: Dockerfile
+    container_name: agro_api_gateway
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - USER_SERVICE_HOST=user-service
+      - WEATHER_SERVICE_HOST=weather-service
+      - NOTIFICATION_SERVICE_HOST=notification-service
+      - ALERT_SERVICE_HOST=alert-service
+    depends_on:
+      - user-service
+      - weather-service
+      - notification-service
+      - alert-service
+    networks:
+      - agro-network
+    restart: unless-stopped
+
+  # User Service
+  user-service:
+    build:
+      context: ./microservices/services/user-service
+      dockerfile: Dockerfile
+    container_name: agro_user_service
+    ports:
+      - "3001:3001"
+    environment:
+      - NODE_ENV=production
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_USER=admin
+      - DB_PASSWORD=admin
+      - DB_NAME=agro_alertas
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - agro-network
+    restart: unless-stopped
+
+  # Weather Service
+  weather-service:
+    build:
+      context: ./microservices/services/weather-service
+      dockerfile: Dockerfile
+    container_name: agro_weather_service
+    ports:
+      - "3002:3002"
+    environment:
+      - NODE_ENV=production
+    env_file:
+      - ./microservices/.env
+    networks:
+      - agro-network
+    volumes:
+      - ./microservices/reports:/app/reports
+    restart: unless-stopped
+
+  # Notification Service
+  notification-service:
+    build:
+      context: ./microservices/services/notification-service
+      dockerfile: Dockerfile
+    container_name: agro_notification_service
+    ports:
+      - "3003:3003"
+    environment:
+      - NODE_ENV=production
+    env_file:
+      - ./microservices/.env
+    networks:
+      - agro-network
+    restart: unless-stopped
+
+  # Alert Service
+  alert-service:
+    build:
+      context: ./microservices/services/alert-service
+      dockerfile: Dockerfile
+    container_name: agro_alert_service
+    ports:
+      - "3004:3004"
+    environment:
+      - NODE_ENV=production
+      - WEATHER_SERVICE_HOST=weather-service
+      - NOTIFICATION_SERVICE_HOST=notification-service
+    depends_on:
+      - weather-service
+      - notification-service
+    networks:
+      - agro-network
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+
+networks:
+  agro-network:
+    driver: bridge
