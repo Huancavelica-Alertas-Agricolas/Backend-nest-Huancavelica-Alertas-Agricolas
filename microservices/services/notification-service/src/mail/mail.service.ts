@@ -83,51 +83,23 @@ export class MailService {
 
   async sendWeatherAlert(to: string, name: string, reportMessage: string): Promise<void> {
     try {
-      this.logger.log(`🌦️ Enviando alerta meteorológica a: ${to}`);
+      this.logger.log(`🌦️ Enviando alerta meteorológica a: ${to} usando plantilla weather-alert`);
       
-      // Crear transporter directamente con nodemailer
-      const transporter = nodemailer.createTransport({
-        host: process.env.MAIL_HOST || 'smtp.gmail.com',
-        port: 587,
-        secure: false,
-        auth: {
-          user: process.env.MAIL_USER,
-          pass: process.env.MAIL_PASS,
+      // Usar el MailerService configurado con las plantillas
+      await this.mailerService.sendMail({
+        to,
+        subject: '🌦️ Alerta Climática - Agro-Alertas Huancavelica',
+        template: 'weather-alert', // nombre del archivo .hbs sin extensión
+        context: {
+          name: name,
+          reportMessage: reportMessage,
+          date: new Date().toLocaleDateString('es-ES'),
+          time: new Date().toLocaleTimeString('es-ES'),
+          location: 'Huancavelica'
         },
       });
-
-      // Leer la plantilla weather-alert.hbs
-      const fs = require('fs');
-      const path = require('path');
-      const handlebars = require('handlebars');
       
-      const templatePath = path.join(__dirname, 'templates', 'weather-alert.hbs');
-      let templateContent = '';
-      
-      try {
-        templateContent = fs.readFileSync(templatePath, 'utf8');
-      } catch (error) {
-        // Si no encuentra la plantilla en esa ubicación, probar en /app/dist/templates/
-        const alternativePath = '/app/dist/templates/weather-alert.hbs';
-        templateContent = fs.readFileSync(alternativePath, 'utf8');
-      }
-      
-      // Compilar la plantilla con los datos
-      const template = handlebars.compile(templateContent);
-      const htmlContent = template({
-        name: name,
-        reportMessage: reportMessage,
-        date: new Date().toLocaleDateString('es-ES')
-      });
-
-      await transporter.sendMail({
-        from: `"${process.env.MAIL_FROM}" <${process.env.MAIL_USER}>`,
-        to,
-        subject: 'Alerta Climática - Agro-Alertas',
-        html: htmlContent,
-      });
-      
-      this.logger.log(`🌦️ Alerta meteorológica enviada exitosamente a: ${to}`);
+      this.logger.log(`🌦️ Alerta meteorológica con plantilla enviada exitosamente a: ${to}`);
     } catch (error) {
       this.logger.error(`Error enviando alerta meteorológica a ${to}:`, error.stack);
       throw error;
