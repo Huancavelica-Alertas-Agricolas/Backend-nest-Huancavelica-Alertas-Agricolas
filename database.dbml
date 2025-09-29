@@ -1,0 +1,159 @@
+Enum "alert_canal_canal_enum" {
+  "email"
+  "sms"
+  "push"
+  "webhook"
+}
+
+Enum "alert_canal_estado_enum" {
+  "pendiente"
+  "enviado"
+  "fallido"
+  "entregado"
+}
+
+Enum "alertas_estado_enum" {
+  "activa"
+  "enviada"
+  "cancelada"
+  "expirada"
+}
+
+Enum "alertas_tipo_enum" {
+  "lluvia"
+  "temperatura"
+  "helada"
+  "sequia"
+  "viento"
+}
+
+Enum "logs_status_enum" {
+  "success"
+  "error"
+  "warning"
+  "info"
+}
+
+Enum "logs_tipo_enum" {
+  "alerta_creada"
+  "alerta_enviada"
+  "alerta_cancelada"
+  "error_envio"
+  "lectura_recibida"
+  "sistema"
+}
+
+Enum "preferencias_notificacion_canal_enum" {
+  "email"
+  "sms"
+  "push"
+}
+
+Table "lecturas" {
+  "id" int4 [pk, not null, increment]
+  "estacion_id" int4 [not null]
+  "timestamp" timestamp [not null]
+  "temp_max" numeric(5,2) [not null]
+  "temp_min" numeric(5,2)
+  "lluvia_mm" numeric(5,2) [not null]
+  "humedad" numeric(5,2)
+  "presion" numeric(6,2)
+  "velocidad_viento" numeric(5,2)
+  "direccion_viento" varchar
+  "created_at" timestamp [not null, default: `now()`]
+  "estacionId" int4
+}
+
+Table "estaciones" {
+  "id" int4 [pk, not null, increment]
+  "nombre" varchar [not null]
+  "ubicacion" varchar [not null]
+  "latitud" numeric(10,7)
+  "longitud" numeric(10,7)
+  "activa" bool [not null, default: true]
+  "created_at" timestamp [not null, default: `now()`]
+  "updated_at" timestamp [not null, default: `now()`]
+}
+
+Table "alert_canal" {
+  "id" int4 [pk, not null, increment]
+  "alerta_id" int4 [not null]
+  "canal" alert_canal_canal_enum [not null]
+  "destinatario" varchar [not null]
+  "estado" alert_canal_estado_enum [not null, default: 'pendiente']
+  "fecha_envio" timestamp
+  "mensaje_error" text
+  "metadatos" json
+  "created_at" timestamp [not null, default: `now()`]
+  "alertaId" int4
+}
+
+Table "alertas" {
+  "id" int4 [pk, not null, increment]
+  "titulo" varchar [not null]
+  "mensaje" text [not null]
+  "tipo" alertas_tipo_enum [not null, default: 'lluvia']
+  "estado" alertas_estado_enum [not null, default: 'activa']
+  "estacion_id" int4 [not null]
+  "usuario_id" int4 [not null]
+  "timestamp" timestamp [not null]
+  "fecha_expiracion" timestamp
+  "parametros" json
+  "created_at" timestamp [not null, default: `now()`]
+  "estacionId" int4
+  "usuarioId" int4
+}
+
+Table "logs" {
+  "id" int4 [pk, not null, increment]
+  "usuario_id" int4 [not null]
+  "alerta_canal_id" int4
+  "tipo" logs_tipo_enum [not null]
+  "status" logs_status_enum [not null, default: 'info']
+  "mensaje" text [not null]
+  "metadatos" json
+  "delivered_at" timestamp [not null, default: `now()`]
+  "created_at" timestamp [not null, default: `now()`]
+  "usuarioId" int4
+  "alertaCanalId" int4
+}
+
+Table "preferencias_notificacion" {
+  "id" int4 [pk, not null, increment]
+  "usuario_id" int4 [not null]
+  "canal" preferencias_notificacion_canal_enum [not null]
+  "activo" bool [not null, default: true]
+  "configuracion" varchar
+  "hora_inicio" time
+  "hora_fin" time
+  "dias_semana" text
+  "created_at" timestamp [not null, default: `now()`]
+  "updated_at" timestamp [not null, default: `now()`]
+  "usuarioId" int4
+}
+
+Table "usuarios" {
+  "id" int4 [pk, not null, increment]
+  "code" varchar [unique, not null]
+  "nombre" varchar [not null]
+  "email" varchar
+  "telefono" varchar
+  "ciudad" varchar [not null]
+  "activo" bool [not null, default: true]
+  "created_at" timestamp [not null, default: `now()`]
+  "updated_at" timestamp [not null, default: `now()`]
+}
+
+Ref "FK_4fe415bad3cc91d617b4a171378":"alertas"."id" < "alert_canal"."alertaId"
+
+Ref "FK_abe9e8672269d1aa3a73ded2339":"estaciones"."id" < "alertas"."estacionId"
+
+Ref "FK_df89995a5765a2884753707f1ed":"usuarios"."id" < "alertas"."usuarioId"
+
+Ref "FK_0edcc18aceee52e1e92be560031":"estaciones"."id" < "lecturas"."estacionId"
+
+Ref "FK_aa69ed518248facf0dc399c9d72":"alert_canal"."id" < "logs"."alertaCanalId"
+
+Ref "FK_c50da38edd1feba47706acaa50b":"usuarios"."id" < "logs"."usuarioId"
+
+Ref "FK_2e4a8e6894bc5d88cac4cbde21b":"usuarios"."id" < "preferencias_notificacion"."usuarioId"
