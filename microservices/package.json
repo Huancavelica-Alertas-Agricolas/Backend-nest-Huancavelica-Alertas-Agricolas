@@ -1,0 +1,22 @@
+{
+  "name": "agro-alertas-microservices",
+  "version": "1.0.0",
+  "description": "Agro-Alertas Sistema de Microservicios",
+  "private": true,
+  "scripts": {
+    "install:all": "cd gateway/api-gateway && npm install && cd ../../services/user-service && npm install && cd ../weather-service && npm install && cd ../notification-service && npm install && cd ../alert-service && npm install",
+    "build:all": "cd gateway/api-gateway && npm run build && cd ../../services/user-service && npm run build && cd ../weather-service && npm run build && cd ../notification-service && npm run build && cd ../alert-service && npm run build",
+    "dev:gateway": "cd gateway/api-gateway && npm run start:dev",
+    "dev:user": "cd services/user-service && npm run start:dev",
+    "dev:weather": "cd services/weather-service && npm run start:dev",
+    "dev:notification": "cd services/notification-service && npm run start:dev",
+    "dev:alert": "cd services/alert-service && npm run start:dev",
+    "docker:up": "docker-compose up -d",
+    "docker:down": "docker-compose down",
+    "docker:logs": "docker-compose logs -f",
+    "docker:build": "docker-compose build"
+  },
+  "keywords": ["microservices", "nestjs", "agriculture", "weather", "alerts"],
+  "author": "Agro-Alertas Team",
+  "license": "MIT"
+}
