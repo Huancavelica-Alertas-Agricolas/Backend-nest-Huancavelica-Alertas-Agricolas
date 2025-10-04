@@ -31,6 +31,16 @@ export class GatewayController {
     };
   }
 
+  @Get('health')
+  getHealth() {
+    return {
+      status: 'OK',
+      timestamp: new Date().toISOString(),
+      uptime: process.uptime(),
+      memory: process.memoryUsage(),
+    };
+  }
+
   // User Service endpoints
   @Post('users')
   async createUser(@Body() userData: any) {
@@ -201,5 +211,100 @@ export class GatewayController {
       id, 
       ...preferenceData 
     }));
+  }
+
+  // Test endpoints para demo
+  @Post('test/email-alert')
+  async testEmailAlert(@Body() alertData: any) {
+    this.logger.log('🧪 Testing email alert system');
+    
+    // Simular respuesta exitosa para propósitos de demo
+    const simulatedAlert = {
+      success: true,
+      message: `✅ SIMULACIÓN: Alerta enviada exitosamente a ${alertData.to}`,
+      alertType: alertData.reportMessage ? 'weather-alert' : 'general',
+      timestamp: new Date().toISOString(),
+      data: {
+        to: alertData.to,
+        subject: alertData.subject,
+        content: alertData.reportMessage || alertData.text || 'Alerta general',
+        name: alertData.name || 'Usuario'
+      }
+    };
+
+    this.logger.log(`📧 DEMO EMAIL ALERT: ${JSON.stringify(simulatedAlert, null, 2)}`);
+    
+    return simulatedAlert;
+  }
+
+  // Endpoint para envío real con plantillas
+  @Post('send-real-alert')
+  async sendRealAlert(@Body() alertData: any) {
+    this.logger.log('📧 Sending REAL email alert with template');
+    
+    try {
+      // Usar el servicio de notificaciones real
+      const result = await firstValueFrom(
+        this.notificationService.send('send_email', {
+          to: alertData.to || 'aldair456.12358@gmail.com',
+          subject: alertData.subject,
+          name: alertData.name,
+          reportMessage: alertData.reportMessage
+        })
+      );
+      
+      this.logger.log(`✅ Real email sent successfully: ${JSON.stringify(result)}`);
+      return {
+        success: true,
+        message: `✅ Email REAL enviado a ${alertData.to || 'aldair456.12358@gmail.com'}`,
+        timestamp: new Date().toISOString(),
+        result: result
+      };
+    } catch (error) {
+      this.logger.error(`❌ Error sending real email: ${error.message}`);
+      return {
+        success: false,
+        message: `❌ Error enviando email: ${error.message}`,
+        timestamp: new Date().toISOString(),
+        error: error.message
+      };
+    }
+  }
+
+  // Endpoint específico para email de bienvenida
+  @Post('send-welcome')
+  async sendWelcome(@Body() welcomeData: any) {
+    this.logger.log('🎉 Sending welcome email with template');
+    
+    try {
+      const result = await firstValueFrom(
+        this.notificationService.send('send_email', {
+          to: welcomeData.to,
+          name: welcomeData.name,
+          subject: welcomeData.subject || '🎉 ¡Bienvenido a Agro-Alertas Huancavelica!',
+          template: 'welcome',
+          context: {
+            name: welcomeData.name
+          }
+        })
+      );
+      
+      this.logger.log(`✅ Welcome email sent successfully: ${JSON.stringify(result)}`);
+      return {
+        success: true,
+        message: `✅ Email de bienvenida enviado a ${welcomeData.to}`,
+        timestamp: new Date().toISOString(),
+        template: 'welcome.hbs',
+        result: result
+      };
+    } catch (error) {
+      this.logger.error(`❌ Error sending welcome email: ${error.message}`);
+      return {
+        success: false,
+        message: `❌ Error enviando email de bienvenida: ${error.message}`,
+        timestamp: new Date().toISOString(),
+        error: error.message
+      };
+    }
   }
 }

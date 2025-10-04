@@ -179,10 +179,62 @@ npm run reset
 - **Función**: Orquestación de alertas complejas
 - **Patrón**: Saga/Orchestrator
 
+## � Desarrollo
+
+### Calidad de Código
+```bash
+# Linting y formateo
+npm run lint:all
+npm run format:all
+
+# Tests
+npm run test:all
+npm run test:cov
+
+# Seguridad
+npm audit
+npm run security:scan
+```
+
+### Documentación API
+- **Swagger**: `http://localhost:3000/api/docs`
+- **Postman**: Colección en `/docs/postman/`
+
+## 🚀 CI/CD
+
+El proyecto incluye:
+- ✅ GitHub Actions pipeline
+- ✅ Dependabot para actualizaciones
+- ✅ Análisis de seguridad automático
+- ✅ Docker multi-stage builds
+- ✅ Despliegue automático
+
+## 🛡️ Seguridad
+
+- **Rate Limiting**: 100 req/min por IP
+- **CORS**: Configuración estricta
+- **Validación**: DTOs con class-validator
+- **Headers**: Security headers con Helmet
+- **Audit**: Análisis automático de vulnerabilidades
+
+Ver `SECURITY.md` para más detalles.
+
+## 🤝 Contribuir
+
+1. Fork el proyecto
+2. Crea tu feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit tus cambios (`git commit -m 'feat: add amazing feature'`)
+4. Push al branch (`git push origin feature/amazing-feature`)
+5. Abre un Pull Request
+
+Ver `CONTRIBUTING.md` para guías detalladas.
+
 ## 📞 Soporte
 
-Para documentación detallada ver `microservices/README.md`
+- **Issues**: [GitHub Issues](https://github.com/Huancavelica-Alertas-Agricolas/Tareas-Huancavelica-Alertas-Agricolas/issues)
+- **Documentación**: `/docs` folder
+- **Email**: dev@agro-alertas.com
 
 ## 📄 Licencia
 
-MIT License - Ver archivo LICENSE para detalles.
+MIT License - Ver archivo [LICENSE](LICENSE) para detalles.
