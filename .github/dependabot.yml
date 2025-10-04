@@ -1,0 +1,107 @@
+version: 2
+updates:
+  # Root package.json
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+    open-pull-requests-limit: 5
+    reviewers:
+      - "agro-alertas-team"
+    assignees:
+      - "agro-alertas-team"
+    commit-message:
+      prefix: "chore"
+      include: "scope"
+
+  # Microservices root
+  - package-ecosystem: "npm"
+    directory: "/microservices"
+    schedule:
+      interval: "weekly"
+      day: "monday"  
+      time: "09:00"
+    open-pull-requests-limit: 5
+
+  # API Gateway
+  - package-ecosystem: "npm"
+    directory: "/microservices/gateway/api-gateway"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+    open-pull-requests-limit: 5
+
+  # User Service
+  - package-ecosystem: "npm"
+    directory: "/microservices/services/user-service"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+    open-pull-requests-limit: 5
+
+  # Weather Service  
+  - package-ecosystem: "npm"
+    directory: "/microservices/services/weather-service"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+    open-pull-requests-limit: 5
+
+  # Notification Service
+  - package-ecosystem: "npm" 
+    directory: "/microservices/services/notification-service"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+    open-pull-requests-limit: 5
+
+  # Alert Service
+  - package-ecosystem: "npm"
+    directory: "/microservices/services/alert-service" 
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+    open-pull-requests-limit: 5
+
+  # Log Service
+  - package-ecosystem: "npm"
+    directory: "/microservices/services/log-service"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+    open-pull-requests-limit: 5
+
+  # Preference Service
+  - package-ecosystem: "npm"
+    directory: "/microservices/services/preference-service"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+    open-pull-requests-limit: 5
+
+  # Docker dependencies  
+  - package-ecosystem: "docker"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+    open-pull-requests-limit: 3
+
+  # GitHub Actions
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+    open-pull-requests-limit: 3
