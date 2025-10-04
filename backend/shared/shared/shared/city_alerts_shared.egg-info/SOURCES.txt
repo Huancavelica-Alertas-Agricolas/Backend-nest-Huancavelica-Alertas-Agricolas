@@ -1,6 +1,0 @@
-pyproject.toml
-shared/city_alerts_shared.egg-info/PKG-INFO
-shared/city_alerts_shared.egg-info/SOURCES.txt
-shared/city_alerts_shared.egg-info/dependency_links.txt
-shared/city_alerts_shared.egg-info/requires.txt
-shared/city_alerts_shared.egg-info/top_level.txt
