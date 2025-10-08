@@ -1,0 +1,35 @@
+name: Block node_modules in PRs
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, edited]
+
+jobs:
+  block-node-modules:
+    name: Fail if PR contains node_modules
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Check for node_modules in PR
+        env:
+          BASE_REF: ${{ github.event.pull_request.base.ref }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          echo "Base ref: $BASE_REF"
+          # Ensure we have the base ref
+          git fetch origin "$BASE_REF" --depth=1 || true
+
+          # List changed files between base and head
+          CHANGED=$(git diff --name-only origin/$BASE_REF...$HEAD_SHA || git diff --name-only origin/$BASE_REF..HEAD)
+          echo "Changed files:";
+          echo "$CHANGED";
+
+          # Fail if any changed path contains node_modules as a directory component
+          echo "$CHANGED" | grep -E '(^|/)node_modules($|/)' && {
+            echo "::error file=.,title=Node modules detected::Pull request modifies node_modules files or directories. Please remove them and add Node modules to .gitignore.";
+            exit 1;
+          } || echo "No node_modules changes detected."
