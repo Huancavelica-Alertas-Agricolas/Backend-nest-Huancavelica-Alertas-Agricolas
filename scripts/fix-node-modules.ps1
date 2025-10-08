@@ -28,11 +28,30 @@ try {
 
 # 3) Remove any tracked node_modules from index (does not delete local files)
 Write-Output "Searching for node_modules directories to remove from index..."
+# First try to remove directories found on disk (may include untracked ones)
 Get-ChildItem -Path . -Recurse -Directory -Filter "node_modules" -ErrorAction SilentlyContinue |
   ForEach-Object {
     $full = $_.FullName
-    Write-Output "Attempting git rm --cached --ignore-unmatch '$full'"
+    Write-Output "Attempting (best-effort) git rm --cached --ignore-unmatch '$full'"
     git rm -r --cached --ignore-unmatch -- "$full" 2>$null
+}
+
+# Additionally, enumerate tracked files that live under any node_modules and remove their parent node_modules directories
+Write-Output "Looking up tracked files under node_modules via git..."
+$tracked = git ls-files -- "*/node_modules/*" 2>$null | Where-Object { $_ -ne '' }
+if ($tracked -and $tracked.Count -gt 0) {
+  Write-Output "Found $($tracked.Count) tracked files under node_modules. Calculating unique node_modules directories..."
+  $dirs = $tracked | ForEach-Object {
+    $s = $_
+    $idx = $s.IndexOf("node_modules")
+    if ($idx -ge 0) { $s.Substring(0, $idx + "node_modules".Length) }
+  } | Sort-Object -Unique
+  foreach ($d in $dirs) {
+    Write-Output "Removing from index: $d"
+    git rm -r --cached --ignore-unmatch -- "$d" 2>$null
+  }
+} else {
+  Write-Output "No tracked files under node_modules found via git ls-files."
 }
 
 # 4) Commit removals if any
