@@ -1,0 +1,3 @@
+#!/bin/sh
+# commit-msg hook to enforce Spanish action verbs
+node "$(git rev-parse --show-toplevel)/scripts/commit-msg-check.js" "$1"
