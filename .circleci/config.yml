@@ -104,19 +104,31 @@ jobs:
       - run:
           name: Docker login
           command: |
-            echo "$DOCKERHUB_PASS" | docker login -u "$DOCKERHUB_USER" --password-stdin
+            if [ -n "$DOCKERHUB_USER" ] && [ -n "$DOCKERHUB_PASS" ]; then
+              echo "$DOCKERHUB_PASS" | docker login -u "$DOCKERHUB_USER" --password-stdin
+              echo "Docker login successful"
+              echo "PUSH_ENABLED=1" >> $BASH_ENV
+            else
+              echo "DockerHub credentials not set. Skipping login and image push."
+              echo "PUSH_ENABLED=0" >> $BASH_ENV
+            fi
       - run:
           name: Build and push service images
           command: |
             set -e
+            BUILD_CONTEXT="microservices"
             for svc in microservices/services/*; do
               if [ -f "$svc/Dockerfile" ]; then
                 name=$(basename "$svc")
-                # Use repo root as build context and the service Dockerfile explicitly
-                docker build -f "$svc/Dockerfile" -t ${DOCKERHUB_USER}/${name}:$CIRCLE_SHA1 .
-                docker push ${DOCKERHUB_USER}/${name}:$CIRCLE_SHA1
-                docker tag ${DOCKERHUB_USER}/${name}:$CIRCLE_SHA1 ${DOCKERHUB_USER}/${name}:latest
-                docker push ${DOCKERHUB_USER}/${name}:latest
+                # Use microservices/ as build context to match Dockerfiles (COPY .. .)
+                docker build -f "$svc/Dockerfile" -t ${DOCKERHUB_USER:-local}/${name}:$CIRCLE_SHA1 "$BUILD_CONTEXT"
+                if [ "$PUSH_ENABLED" = "1" ]; then
+                  docker push ${DOCKERHUB_USER}/${name}:$CIRCLE_SHA1
+                  docker tag ${DOCKERHUB_USER}/${name}:$CIRCLE_SHA1 ${DOCKERHUB_USER}/${name}:latest
+                  docker push ${DOCKERHUB_USER}/${name}:latest
+                else
+                  echo "Push disabled; built image ${DOCKERHUB_USER:-local}/${name}:$CIRCLE_SHA1 locally only"
+                fi
               fi
             done
           # retry settings removed from step; managed at workflow level
