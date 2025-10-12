@@ -1,12 +1,12 @@
 # Weather Service Dockerfile
 FROM node:18-alpine
 
-# Copiamos todo el repositorio para que las dependencias "file:../../.." funcionen dentro del contenedor
+# El context de build ahora es microservices/; copiamos el repo raíz con ".."
 WORKDIR /app
-COPY . .
+COPY .. .
 
 # Instalamos dependencias dentro de la carpeta del servicio
-WORKDIR /app/services/weather-service
+WORKDIR /app/microservices/services/weather-service
 RUN \
 	if [ -f package-lock.json ]; then \
 		npm ci --prefer-offline --no-audit --progress=false || (echo '--- NPM INSTALL FAILED - LOGS ---' && ls -la /root/.npm/_logs || true && cat /root/.npm/_logs/*.log || true; exit 1); \

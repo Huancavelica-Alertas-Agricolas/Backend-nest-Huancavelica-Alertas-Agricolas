@@ -1,12 +1,12 @@
 # Log Service Dockerfile
 FROM node:18-alpine
 
-# Copiamos todo el repo para resolver deps locales "file:../../.."
+# El context es microservices/, copiamos el repo raíz
 WORKDIR /app
-COPY . .
+COPY .. .
 
 # Instalar deps dentro del servicio
-WORKDIR /app/services/log-service
+WORKDIR /app/microservices/services/log-service
 RUN \
 	if [ -f package-lock.json ]; then \
 		npm ci --prefer-offline --no-audit --progress=false || (echo '--- NPM INSTALL FAILED - LOGS ---' && ls -la /root/.npm/_logs || true && cat /root/.npm/_logs/*.log || true; exit 1); \

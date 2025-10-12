@@ -1,12 +1,12 @@
 # Notification Service Dockerfile
 FROM node:18-alpine
 
-# Copiamos todo el repo para resolver deps locales "file:../../.."
+# El context es microservices/, copiamos el repo raíz para que funcionen deps locales
 WORKDIR /app
-COPY . .
+COPY .. .
 
 # Instalación dentro del servicio
-WORKDIR /app/services/notification-service
+WORKDIR /app/microservices/services/notification-service
 RUN \
 	if [ -f package-lock.json ]; then \
 		npm ci --prefer-offline --no-audit --progress=false || (echo '--- NPM INSTALL FAILED - LOGS ---' && ls -la /root/.npm/_logs || true && cat /root/.npm/_logs/*.log || true; exit 1); \

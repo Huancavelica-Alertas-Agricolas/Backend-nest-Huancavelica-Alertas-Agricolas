@@ -1,12 +1,12 @@
 # API Gateway Dockerfile
 FROM node:18-alpine
 
-# Copiamos todo el repo para que las deps locales "file:../../.." funcionen
+# El context es microservices/, necesitamos subir un nivel
 WORKDIR /app
-COPY . .
+COPY .. .
 
 # Instalar dentro del servicio
-WORKDIR /app/gateway/api-gateway
+WORKDIR /app/microservices/gateway/api-gateway
 RUN \
 	if [ -f package-lock.json ]; then \
 		npm ci --prefer-offline --no-audit --progress=false || (echo '--- NPM INSTALL FAILED - LOGS ---' && ls -la /root/.npm/_logs || true && cat /root/.npm/_logs/*.log || true; exit 1); \
