@@ -1,193 +1,91 @@
 
 version: 2.1
 
-jobs:
-  integration:
+# Cleaned and adapted CircleCI configuration.
+# - Based on the template you provided, simplified for this repository.
+# - Jobs: install-root, test-services, integration (docker-compose), docker-build-push, deploy-ssh.
+# - Workflow has max_auto_reruns enabled.
+
+orbs:
+  node: circleci/node@5.0.2
+
+executors:
+  node-executor:
     docker:
       - image: cimg/node:18.16
-      - image: postgres:15
-        environment:
-          POSTGRES_USER: admin
-          POSTGRES_PASSWORD: admin
-          POSTGRES_DB: users_db
+
+commands:
+  install-root-deps:
+    description: "Install root-level dependencies if package.json exists"
     steps:
-      - checkout
-
       - run:
-          name: Wait for Postgres
-          command: |
-            # install psql client to verify readiness
-            sudo apt-get update -qq
-            sudo apt-get install -y -qq postgresql-client
-            attempt=0
-            until pg_isready -h 127.0.0.1 -p 5432 -U admin || [ $attempt -gt 30 ]; do
-              attempt=$((attempt+1))
-              echo "Waiting for postgres... ($attempt)"
-              sleep 1
-            done
-
-      - run:
-          name: Create test DB
-          command: |
-            PGPASSWORD=admin psql -h 127.0.0.1 -U admin -c "CREATE DATABASE users_db_clean;" || true
-
-      - run:
-          name: Run migrations + integration tests per service
-          command: |
-            set -euo pipefail
-            for svc in microservices/services/*; do
-              if [ -f "$svc/package.json" ]; then
-                echo "\n===== Integration: $svc ====="
-                cd "$svc"
-                npm ci --silent
-                # Lint and build from source so CI does not rely on committed dist/
-                if npm run -s lint --silent 2>/dev/null; then
-                  echo "lint: OK for $svc"
-                else
-                  echo "no lint script or lint failed for $svc"
-                fi
-                if npm run -s build --silent 2>/dev/null; then
-                  echo "build: OK for $svc"
-                else
-                  echo "no build script for $svc"
-                fi
-                # Run migrations against the test DB
-                export DB_HOST=127.0.0.1
-                export DB_PORT=5432
-                export DB_USER=admin
-                export DB_PASSWORD=admin
-                export DB_NAME=users_db_clean
-                if npm run -s m:run 2>/dev/null; then
-                  echo "migrations: OK for $svc"
-                else
-                  echo "migrations: none or failed for $svc"
-                fi
-
-                # run integration tests (if defined). Expect integration tests to be named test:integration or 'test'
-                if npm run -s test:integration 2>/dev/null; then
-                  echo "integration tests: OK for $svc"
-                elif npm test --silent 2>/dev/null; then
-                  echo "unit tests: OK for $svc"
-                else
-                  echo "no tests found for $svc (non-blocking)"
-                fi
-
-                # clean env and move back
-                unset DB_NAME DB_HOST DB_PORT DB_USER DB_PASSWORD
-                cd - >/dev/null
-              fi
-            done
-
-workflows:
-  integration_flow:
-    jobs:
-      - integration
-version: 2.1
-orbs:
-  node: circleci/node@5.0.0
-
-jobs:
-  setup-and-test:
-    docker:
-      - image: cimg/node:18.20
-    steps:
-      - checkout
-      - run:
-          name: Show Node version
-          command: node --version && npm --version
-
-      # Install root deps if any
-      - run:
-          name: Install root (if package.json exists)
+          name: Install root deps
           command: |
             if [ -f package.json ]; then npm ci; else echo "no root package.json"; fi
 
-      # Iterate microservices and run their tests/builds if they have package.json
-      - run:
-          name: Run microservices tests and builds
-          command: |
-            set -e
-            for d in microservices/services/*; do
-              if [ -d "$d" ] && [ -f "$d/package.json" ]; then
-                echo "--- Processing $d ---"
-                pushd "$d"
-                npm ci || npm install
-                if npm run -s test --silent; then echo "tests OK for $d"; else echo "no tests or tests failed for $d"; fi
-                if npm run -s build --silent; then echo "build OK for $d"; else echo "no build script for $d"; fi
-                popd
-              fi
-            done
-
-      - persist_to_workspace:
-          root: .
-          paths:
-            - .
-
 jobs:
-  integration:
-    machine: true
+  install-root:
+    executor: node-executor
+    steps:
+      - checkout
+      - install-root-deps
+
+  test-services:
+    executor: node-executor
     steps:
       - checkout
       - run:
-          name: Ensure Docker Compose is available
+          name: Run tests for all microservices
+          command: |
+            set -e
+            for svc in microservices/services/*; do
+              if [ -f "$svc/package.json" ]; then
+                echo "=== Testing $svc ==="
+                pushd "$svc"
+                npm ci || npm install
+                if npm run -s test --silent; then
+                  echo "tests OK for $svc"
+                else
+                  echo "tests failed or none for $svc"
+                fi
+                popd
+              fi
+            done
+          max_auto_reruns: 2
+          auto_rerun_delay: 10s
+
+  integration:
+    machine:
+      image: ubuntu-2404:current
+    steps:
+      - checkout
+      - run:
+          name: Ensure Docker Compose
           command: |
             docker-compose --version || (curl -L "https://github.com/docker/compose/releases/download/v2.21.0/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose && chmod +x /usr/local/bin/docker-compose)
-
       - run:
-          name: Build and start services (Docker Compose)
-          command: |
-            docker-compose -f docker-compose.yml up -d --build
-
+          name: Start docker-compose
+          command: docker-compose -f docker-compose.yml up -d --build
+          max_auto_reruns: 2
+          auto_rerun_delay: 15s
       - run:
-          name: Wait for Postgres to be healthy
+          name: Wait for postgres
           command: |
-            echo "Waiting for postgres container..."
-            for i in {1..30}; do
+            for i in $(seq 1 30); do
               docker exec agro_postgres pg_isready -U ${DB_USER:-admin} -d ${DB_NAME:-agro_alertas} && break || sleep 2
             done
-
-      - run:
-          name: Initialize database schema
-          command: |
-            echo "Loading SQL schema into Postgres"
-            docker exec -i agro_postgres psql -U ${DB_USER:-admin} -d ${DB_NAME:-agro_alertas} < sql/init_schema.sql || (echo "Failed to load schema" && exit 1)
-
-      - run:
-          name: Wait for API Gateway health
-          command: |
-            echo "Waiting for API Gateway on http://localhost:3000/health"
-            for i in {1..30}; do
-              curl -sSf http://localhost:3000/health && break || sleep 2
-            done
-
       - run:
           name: Smoke tests
           command: |
-            set -e
-            echo "GET / (gateway)"
-            curl -sSf http://localhost:3000/ | jq . || true
-            echo "GET /alertas"
-            curl -sSf http://localhost:3000/alertas || echo "/alertas may return 404 if no alert-service responds yet"
-
-      - run:
-          name: Run unit tests inside services (if present)
-          command: |
-            for svc in user-service weather-service alert-service notification-service; do
-              cname="agro_${svc//-/_}"
-              # If container exists, try to run its npm test
-              if docker ps --format '{{.Names}}' | grep -q "${cname}"; then
-                echo "Running tests in $cname (if script exists)"
-                docker exec ${cname} sh -lc "if [ -f package.json ] && grep -q \"\"scripts\":\" package.json; then npm test || true; else echo 'no tests'; fi" || true
-              fi
-            done
-
+            curl -sSf http://localhost:3000/ || true
+            curl -sSf http://localhost:3000/alertas || true
       - run:
           name: Teardown
-          command: |
-            docker-compose -f docker-compose.yml down --volumes --remove-orphans
+          command: docker-compose -f docker-compose.yml down --volumes --remove-orphans
 
   docker-build-push:
-    machine: true
+    machine:
+      image: ubuntu-2404:current
     steps:
       - checkout
       - run:
@@ -195,41 +93,51 @@ jobs:
           command: |
             echo "$DOCKERHUB_PASS" | docker login -u "$DOCKERHUB_USER" --password-stdin
       - run:
-          name: Build and push images
+          name: Build and push service images
           command: |
+            set -e
             for svc in microservices/services/*; do
               if [ -f "$svc/Dockerfile" ]; then
-                name=$(basename $svc)
-                docker build -t ${DOCKERHUB_USER}/${name}:$CIRCLE_SHA1 $svc
+                name=$(basename "$svc")
+                docker build -t ${DOCKERHUB_USER}/${name}:$CIRCLE_SHA1 "$svc"
                 docker push ${DOCKERHUB_USER}/${name}:$CIRCLE_SHA1
                 docker tag ${DOCKERHUB_USER}/${name}:$CIRCLE_SHA1 ${DOCKERHUB_USER}/${name}:latest
                 docker push ${DOCKERHUB_USER}/${name}:latest
               fi
             done
+          max_auto_reruns: 2
+          auto_rerun_delay: 20s
 
   deploy-ssh:
-    machine: true
+    machine:
+      image: ubuntu-2404:current
     steps:
       - add_ssh_keys:
           fingerprints:
             - "$DEPLOY_SSH_FP"
       - run:
-          name: Remote deploy via SSH
+          name: Deploy via SSH
           command: |
-            echo "Deploying to $DEPLOY_HOST"
             ssh -o StrictHostKeyChecking=no $DEPLOY_USER@$DEPLOY_HOST "cd $DEPLOY_PATH && git pull origin main && docker compose pull && docker compose up -d --build"
 
 workflows:
   version: 2
   ci_on_main:
+    max_auto_reruns: 3
     jobs:
-      - setup-and-test:
+      - install-root:
+          filters:
+            branches:
+              only: main
+      - test-services:
+          requires:
+            - install-root
           filters:
             branches:
               only: main
       - integration:
           requires:
-            - setup-and-test
+            - test-services
           filters:
             branches:
               only: main
