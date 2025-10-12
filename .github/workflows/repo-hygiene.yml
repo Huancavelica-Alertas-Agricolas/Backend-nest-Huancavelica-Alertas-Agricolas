@@ -1,0 +1,36 @@
+name: Repo hygiene
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  forbid-generated-artifacts:
+    name: Forbid tracking node_modules/dist/etc
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Ensure no forbidden tracked paths
+        shell: bash
+        run: |
+          set -e
+          echo "Checking for forbidden tracked paths (node_modules, dist, coverage, build, out, lib)..."
+          # List tracked files and grep for forbidden directories
+          forbidden=$(git ls-files | grep -E '(^|/)node_modules/|(^|/)dist/|(^|/)coverage/|(^|/)build/|(^|/)out/|(^|/)lib/') || true
+          if [ -n "$forbidden" ]; then
+            echo "Found forbidden tracked files/folders:" >&2
+            echo "$forbidden" >&2
+            echo "Remove these from git history/index and add them to .gitignore if needed." >&2
+            exit 1
+          fi
+
+      - name: .gitignore must exist
+        shell: bash
+        run: |
+          test -f .gitignore || { echo ".gitignore not found at repo root" >&2; exit 1; }
