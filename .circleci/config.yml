@@ -1,155 +1,23 @@
-
+# Use the latest 2.1 version of CircleCI pipeline process engine.
+# See: https://circleci.com/docs/reference/configuration-reference
 version: 2.1
 
-# Cleaned and adapted CircleCI configuration.
-# - Based on the template you provided, simplified for this repository.
-# - Jobs: install-root, test-services, integration (docker-compose), docker-build-push, deploy-ssh.
-# - Workflow has max_auto_reruns enabled.
-
+# Orbs are reusable packages of CircleCI configuration that you may share across projects, enabling you to create encapsulated, parameterized commands, jobs, and executors that can be used across multiple projects.
+# See: https://circleci.com/docs/orbs/use/orb-intro/
 orbs:
-  node: circleci/node@5.0.2
+  # See the Node orb documentation here: https://circleci.com/developer/orbs/orb/circleci/node
+  node: circleci/node@5.2
 
-executors:
-  node-executor:
-    docker:
-      - image: cimg/node:18.16
-
-commands:
-  install-root-deps:
-    description: "Install root-level dependencies if package.json exists"
-    steps:
-      - run:
-          name: Install root deps
-          command: |
-            if [ -f package.json ]; then npm ci; else echo "no root package.json"; fi
-
-jobs:
-  install-root:
-    executor: node-executor
-    steps:
-      - checkout
-      - install-root-deps
-
-  test-services:
-    executor: node-executor
-    steps:
-      - checkout
-      - run:
-          name: Run tests for all microservices
-          command: |
-            set -e
-            for svc in microservices/services/*; do
-              if [ -f "$svc/package.json" ]; then
-                echo "=== Testing $svc ==="
-                pushd "$svc"
-                npm ci || npm install
-                if npm run -s test --silent; then
-                  echo "tests OK for $svc"
-                else
-                  echo "tests failed or none for $svc"
-                fi
-                popd
-              fi
-            done
-          max_auto_reruns: 2
-          auto_rerun_delay: 10s
-
-  integration:
-    machine:
-      image: ubuntu-2404:current
-    steps:
-      - checkout
-      - run:
-          name: Ensure Docker Compose
-          command: |
-            docker-compose --version || (curl -L "https://github.com/docker/compose/releases/download/v2.21.0/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose && chmod +x /usr/local/bin/docker-compose)
-      - run:
-          name: Start docker-compose
-          command: docker-compose -f docker-compose.yml up -d --build
-          max_auto_reruns: 2
-          auto_rerun_delay: 15s
-      - run:
-          name: Wait for postgres
-          command: |
-            for i in $(seq 1 30); do
-              docker exec agro_postgres pg_isready -U ${DB_USER:-admin} -d ${DB_NAME:-agro_alertas} && break || sleep 2
-            done
-      - run:
-          name: Smoke tests
-          command: |
-            curl -sSf http://localhost:3000/ || true
-            curl -sSf http://localhost:3000/alertas || true
-      - run:
-          name: Teardown
-          command: docker-compose -f docker-compose.yml down --volumes --remove-orphans
-
-  docker-build-push:
-    machine:
-      image: ubuntu-2404:current
-    steps:
-      - checkout
-      - run:
-          name: Docker login
-          command: |
-            echo "$DOCKERHUB_PASS" | docker login -u "$DOCKERHUB_USER" --password-stdin
-      - run:
-          name: Build and push service images
-          command: |
-            set -e
-            for svc in microservices/services/*; do
-              if [ -f "$svc/Dockerfile" ]; then
-                name=$(basename "$svc")
-                docker build -t ${DOCKERHUB_USER}/${name}:$CIRCLE_SHA1 "$svc"
-                docker push ${DOCKERHUB_USER}/${name}:$CIRCLE_SHA1
-                docker tag ${DOCKERHUB_USER}/${name}:$CIRCLE_SHA1 ${DOCKERHUB_USER}/${name}:latest
-                docker push ${DOCKERHUB_USER}/${name}:latest
-              fi
-            done
-          max_auto_reruns: 2
-          auto_rerun_delay: 20s
-
-  deploy-ssh:
-    machine:
-      image: ubuntu-2404:current
-    steps:
-      - add_ssh_keys:
-          fingerprints:
-            - "$DEPLOY_SSH_FP"
-      - run:
-          name: Deploy via SSH
-          command: |
-            ssh -o StrictHostKeyChecking=no $DEPLOY_USER@$DEPLOY_HOST "cd $DEPLOY_PATH && git pull origin main && docker compose pull && docker compose up -d --build"
-
+# Orchestrate jobs using workflows
+# See: https://circleci.com/docs/guides/orchestrate/workflows/ & https://circleci.com/docs/reference/configuration-reference/#workflows
 workflows:
-  version: 2
-  ci_on_main:
-    max_auto_reruns: 3
+  sample: # This is the name of the workflow, feel free to change it to better match your workflow.
+    # Inside the workflow, you define the jobs you want to run.
     jobs:
-      - install-root:
-          filters:
-            branches:
-              only: main
-      - test-services:
-          requires:
-            - install-root
-          filters:
-            branches:
-              only: main
-      - integration:
-          requires:
-            - test-services
-          filters:
-            branches:
-              only: main
-      - docker-build-push:
-          requires:
-            - integration
-          filters:
-            branches:
-              only: main
-      - deploy-ssh:
-          requires:
-            - docker-build-push
-          filters:
-            branches:
-              only: main
+      - node/test:
+          # This is the node version to use for the `cimg/node` tag
+          # Relevant tags can be found on the CircleCI Developer Hub
+          # https://circleci.com/developer/images/image/cimg/node
+          version: '16.10'
+          # If you are using yarn, change the line below from "npm" to "yarn"
+          pkg-manager: npm
