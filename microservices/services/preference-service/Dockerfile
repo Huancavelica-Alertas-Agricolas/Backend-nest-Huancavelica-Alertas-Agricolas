@@ -2,10 +2,12 @@ FROM node:18-alpine
 
 WORKDIR /app
 
-COPY package*.json ./
+# Copiar archivos de dependencias desde el contexto raíz
+COPY services/preference-service/package*.json ./
 RUN npm install
 
-COPY . .
+# Copiar código fuente del servicio desde el contexto raíz
+COPY services/preference-service/ ./
 
 RUN npm run build
 

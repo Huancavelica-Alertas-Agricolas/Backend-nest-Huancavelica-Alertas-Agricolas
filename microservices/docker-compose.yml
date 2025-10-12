@@ -81,8 +81,8 @@ services:
   # API Gateway
   api-gateway:
     build:
-      context: ./gateway/api-gateway
-      dockerfile: Dockerfile
+      context: ..
+      dockerfile: gateway/api-gateway/Dockerfile
     container_name: agro_gateway_microservices
     ports:
       - "3000:3000"
@@ -114,8 +114,8 @@ services:
   # User Service
   user-service:
     build:
-      context: ./services/user-service
-      dockerfile: Dockerfile
+      context: ..
+      dockerfile: services/user-service/Dockerfile
     container_name: agro_user_service
     ports:
       - "3001:3001"
@@ -136,8 +136,8 @@ services:
   # Weather Service
   weather-service:
     build:
-      context: ./services/weather-service
-      dockerfile: Dockerfile
+      context: ..
+      dockerfile: services/weather-service/Dockerfile
     container_name: agro_weather_service
     ports:
       - "3002:3002"
@@ -154,8 +154,8 @@ services:
   # Notification Service
   notification-service:
     build:
-      context: ./services/notification-service
-      dockerfile: Dockerfile
+      context: ..
+      dockerfile: services/notification-service/Dockerfile
     container_name: agro_notification_service
     ports:
       - "3003:3003"
@@ -173,8 +173,8 @@ services:
   # Alert Service (Orchestrator)
   alert-service:
     build:
-      context: ./services/alert-service
-      dockerfile: Dockerfile
+      context: ..
+      dockerfile: services/alert-service/Dockerfile
     container_name: agro_alert_service
     ports:
       - "3004:3004"
@@ -203,8 +203,8 @@ services:
   # Log Service
   log-service:
     build:
-      context: ./services/log-service
-      dockerfile: Dockerfile
+      context: ..
+      dockerfile: services/log-service/Dockerfile
     container_name: agro_log_service
     ports:
       - "3005:3005"
@@ -225,8 +225,8 @@ services:
   # Preference Service
   preference-service:
     build:
-      context: ./services/preference-service
-      dockerfile: Dockerfile
+      context: ..
+      dockerfile: services/preference-service/Dockerfile
     container_name: agro_preference_service
     ports:
       - "3006:3006"

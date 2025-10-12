@@ -1,16 +1,17 @@
 # Log Service Dockerfile
 FROM node:18-alpine
 
+
 WORKDIR /app
 
-# Copiar archivos de dependencias
-COPY package*.json ./
+# Copiar archivos de dependencias desde el contexto raíz
+COPY services/log-service/package*.json ./
 
 # Instalar todas las dependencias (incluyendo dev para build)
 RUN npm install
 
-# Copiar código fuente
-COPY . .
+# Copiar código fuente del servicio desde el contexto raíz
+COPY services/log-service/ ./
 
 # Construir la aplicación
 RUN npm run build

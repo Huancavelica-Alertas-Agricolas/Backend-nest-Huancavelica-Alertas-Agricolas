@@ -1,16 +1,17 @@
 # API Gateway Dockerfile
 FROM node:18-alpine
 
+
 WORKDIR /app
 
-# Copiar archivos de dependencias
-COPY package*.json ./
+# Copiar archivos de dependencias desde el contexto raíz
+COPY gateway/api-gateway/package*.json ./
 
 # Instalar todas las dependencias (incluyendo dev para build)
 RUN npm install
 
-# Copiar código fuente
-COPY . .
+# Copiar código fuente del gateway desde el contexto raíz
+COPY gateway/api-gateway/ ./
 
 # Construir la aplicación
 RUN npm run build
