@@ -1,13 +1,13 @@
 # Alert Service Dockerfile
 FROM node:18-alpine
 
+
 WORKDIR /app
+# Copy full repo so local file deps resolve
+COPY . .
 
-# Copiar archivos de dependencias desde el contexto raíz
-COPY package*.json /tmp/root_package_files/
-COPY services/alert-service/package*.json ./
-
-# Install dependencies with lockfile if present
+# Install dependencies inside the service folder (use service lockfile if present)
+WORKDIR /app/services/alert-service
 RUN \
 	if [ -f package-lock.json ]; then \
 		npm ci --prefer-offline --no-audit --progress=false; \
@@ -15,11 +15,7 @@ RUN \
 		npm install --no-audit --progress=false; \
 	fi
 
-# Copy full repo so local file deps resolve
-COPY . .
-
 # Build the application and remove dev dependencies in one layer
-WORKDIR /app/services/alert-service
 RUN npm run build && npm prune --production || true
 
 # Expose port
