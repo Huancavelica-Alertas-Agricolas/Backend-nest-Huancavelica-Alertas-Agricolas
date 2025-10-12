@@ -137,13 +137,30 @@ jobs:
     machine:
       image: ubuntu-2404:current
     steps:
+      - run:
+          name: Validate deploy variables
+          command: |
+            set -e
+            missing=()
+            for v in DEPLOY_USER DEPLOY_HOST DEPLOY_PATH DEPLOY_SSH_FP; do
+              if [ -z "${!v}" ]; then missing+=("$v"); fi
+            done
+            if [ ${#missing[@]} -gt 0 ]; then
+              echo "Skipping deploy-ssh; missing vars: ${missing[*]}"
+              echo "DEPLOY_SKIP=1" >> $BASH_ENV
+            else
+              echo "DEPLOY_SKIP=0" >> $BASH_ENV
+            fi
       - add_ssh_keys:
           fingerprints:
             - "$DEPLOY_SSH_FP"
       - run:
           name: Deploy via SSH
           command: |
-            ssh -o StrictHostKeyChecking=no $DEPLOY_USER@$DEPLOY_HOST "cd $DEPLOY_PATH && git pull origin main && docker compose pull && docker compose up -d --build"
+            if [ "$DEPLOY_SKIP" = "1" ]; then
+              echo "Deploy variables not set; skipping SSH deploy."; exit 0;
+            fi
+            ssh -o StrictHostKeyChecking=no "${DEPLOY_USER}@${DEPLOY_HOST}" "cd \"${DEPLOY_PATH}\" && git pull origin main && docker compose pull && docker compose up -d --build"
 
 workflows:
   ci_on_main:
