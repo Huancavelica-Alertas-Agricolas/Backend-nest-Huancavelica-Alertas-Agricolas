@@ -22,17 +22,17 @@ export class AlertaService {
     });
   }
 
-  async create(alertaData: any): Promise<any> {
+  async create(alertaData: unknown): Promise<unknown> {
     this.logger.log('Forwarding create alerta to alert-service');
     return await firstValueFrom(this.client.send('create_alerta', alertaData));
   }
 
-  async findAll(): Promise<any> {
+  async findAll(): Promise<unknown> {
     this.logger.log('Requesting all alertas from alert-service');
     return await firstValueFrom(this.client.send('get_all_alertas', {}));
   }
 
-  async findByUser(usuarioId: number): Promise<any> {
+  async findByUser(usuarioId: number): Promise<unknown> {
     this.logger.log(
       `Requesting alertas for user ${usuarioId} from alert-service`,
     );
@@ -41,12 +41,12 @@ export class AlertaService {
     );
   }
 
-  async findActivas(): Promise<any> {
+  async findActivas(): Promise<unknown> {
     this.logger.log('Requesting active alertas from alert-service');
     return await firstValueFrom(this.client.send('get_alertas_activas', {}));
   }
 
-  async updateEstado(id: number, estado: any): Promise<any> {
+  async updateEstado(id: number, estado: string): Promise<unknown> {
     this.logger.log(
       `Forwarding update estado for alerta ${id} to alert-service`,
     );
@@ -55,12 +55,12 @@ export class AlertaService {
     );
   }
 
-  async createLog(logData: any): Promise<any> {
+  async createLog(logData: unknown): Promise<unknown> {
     this.logger.log('Forwarding create log to alert-service');
     return await firstValueFrom(this.client.send('create_log', logData));
   }
 
-  async addCanal(alertaId: number, canalData: any): Promise<any> {
+  async addCanal(alertaId: number, canalData: unknown): Promise<unknown> {
     this.logger.log(
       `Forwarding add canal for alerta ${alertaId} to alert-service`,
     );

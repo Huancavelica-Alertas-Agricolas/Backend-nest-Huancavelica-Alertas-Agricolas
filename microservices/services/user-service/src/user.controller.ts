@@ -1,6 +1,7 @@
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
 import { UserService } from './user.service';
+import { User } from './entities/user.entity';
 import { AlertaService } from './alerta.service';
 
 @Controller()
@@ -14,9 +15,9 @@ export class UserController {
 
   // User operations
   @MessagePattern('create_user')
-  async createUser(@Payload() userData: any) {
+  async createUser(@Payload() userData: unknown) {
     this.logger.log('Creating user:', userData);
-    return await this.userService.create(userData);
+    return await this.userService.create(userData as Partial<User>);
   }
 
   @MessagePattern('get_user')
@@ -32,7 +33,7 @@ export class UserController {
   }
 
   @MessagePattern('update_user')
-  async updateUser(@Payload() data: { id: number; userData: any }) {
+  async updateUser(@Payload() data: { id: number; userData: Partial<User> }) {
     this.logger.log(`Updating user ${data.id}:`, data.userData);
     return await this.userService.update(data.id, data.userData);
   }
@@ -47,7 +48,7 @@ export class UserController {
 
   // Alertas operations
   @MessagePattern('create_alerta')
-  async createAlerta(@Payload() alertaData: any) {
+  async createAlerta(@Payload() alertaData: unknown) {
     this.logger.log('Creating alerta:', alertaData);
     return await this.alertaService.create(alertaData);
   }
@@ -73,11 +74,11 @@ export class UserController {
   @MessagePattern('update_alerta_estado')
   async updateAlertaEstado(@Payload() data: { id: number; estado: string }) {
     this.logger.log(`Updating alerta ${data.id} estado to: ${data.estado}`);
-    return await this.alertaService.updateEstado(data.id, data.estado as any);
+    return await this.alertaService.updateEstado(data.id, data.estado);
   }
 
   @MessagePattern('create_log')
-  async createLog(@Payload() logData: any) {
+  async createLog(@Payload() logData: unknown) {
     this.logger.log('Creating log:', logData);
     return await this.alertaService.createLog(logData);
   }

@@ -2,7 +2,9 @@ import * as crypto from 'crypto';
 
 // Polyfill crypto for Node.js compatibility
 if (!global.crypto) {
-  (global as any).crypto = {
+  // Provide a minimal crypto.randomUUID shim for older Node.js runtimes.
+  // Use a type assertion to avoid `any`-related lint warnings.
+  (global as unknown as { crypto?: { randomUUID?: () => string } }).crypto = {
     randomUUID: crypto.randomUUID,
   };
 }
