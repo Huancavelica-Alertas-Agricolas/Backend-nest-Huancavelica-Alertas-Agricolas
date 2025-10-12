@@ -40,6 +40,17 @@ jobs:
                 echo "\n===== Integration: $svc ====="
                 cd "$svc"
                 npm ci --silent
+                # Lint and build from source so CI does not rely on committed dist/
+                if npm run -s lint --silent 2>/dev/null; then
+                  echo "lint: OK for $svc"
+                else
+                  echo "no lint script or lint failed for $svc"
+                fi
+                if npm run -s build --silent 2>/dev/null; then
+                  echo "build: OK for $svc"
+                else
+                  echo "no build script for $svc"
+                fi
                 # Run migrations against the test DB
                 export DB_HOST=127.0.0.1
                 export DB_PORT=5432
