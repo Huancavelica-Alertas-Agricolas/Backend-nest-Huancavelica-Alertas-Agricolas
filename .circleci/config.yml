@@ -50,8 +50,7 @@ jobs:
                 popd
               fi
             done
-          max_auto_reruns: 2
-          auto_rerun_delay: 10s
+          # retry settings removed from step; managed at workflow level
 
   integration:
     machine:
@@ -65,8 +64,7 @@ jobs:
       - run:
           name: Start docker-compose
           command: docker-compose -f microservices/docker-compose.yml up -d --build
-          max_auto_reruns: 2
-          auto_rerun_delay: 15s
+          # retry settings removed from step; managed at workflow level
       - run:
           name: Wait for postgres
           command: |
@@ -88,6 +86,13 @@ jobs:
     steps:
       - checkout
       - run:
+          name: "Debug: list repo root files before docker build"
+          command: |
+            echo "Listing repo root (for docker build context debug):"
+            ls -la . || true
+            echo "Check presence of root package.json and microservices folder:"
+            ls -la package.json microservices || true
+      - run:
           name: Docker login
           command: |
             echo "$DOCKERHUB_PASS" | docker login -u "$DOCKERHUB_USER" --password-stdin
@@ -105,8 +110,7 @@ jobs:
                 docker push ${DOCKERHUB_USER}/${name}:latest
               fi
             done
-          max_auto_reruns: 2
-          auto_rerun_delay: 20s
+          # retry settings removed from step; managed at workflow level
 
   deploy-ssh:
     machine:

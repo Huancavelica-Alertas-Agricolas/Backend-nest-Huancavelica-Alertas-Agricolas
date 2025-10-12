@@ -3,23 +3,27 @@ FROM node:18-alpine
 
 WORKDIR /app
 
-# Copiar archivos de dependencias desde el contexto raíz
+# Copy root package files so local file: dependencies (../../..) resolve
+# We copy the root package.json (agro-alertas-microservices) and the service package files
+COPY package*.json /tmp/root_package_files/
 COPY services/user-service/package*.json ./
+# Install dependencies with lockfile if present for reproducible builds
+RUN \
+	if [ -f package-lock.json ]; then \
+		npm ci --prefer-offline --no-audit --progress=false; \
+	else \
+		npm install --no-audit --progress=false; \
+	fi
 
-# Instalar todas las dependencias (incluyendo dev para build)
-RUN npm install
+# Copy the rest of the repository so local file:../../.. deps are available
+COPY . .
 
-# Copiar código fuente del servicio desde el contexto raíz
-COPY services/user-service/ ./
+# Build the application and remove dev dependencies in one layer
+WORKDIR /app/services/user-service
+RUN npm run build && npm prune --production || true
 
-# Construir la aplicación
-RUN npm run build
-
-# Remover dependencias de desarrollo
-RUN npm prune --production
-
-# Exponer puerto
+# Expose port
 EXPOSE 3001
 
-# Comando para ejecutar la aplicación
+# Run the production start for the service
 CMD ["npm", "run", "start:prod"]
