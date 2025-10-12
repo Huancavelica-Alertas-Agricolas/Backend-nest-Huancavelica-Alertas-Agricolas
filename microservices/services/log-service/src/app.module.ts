@@ -26,7 +26,7 @@ import { LogEntry } from './entities/log-entry.entity';
         port: configService.get('DB_PORT', 5433),
         username: configService.get('DB_USER', 'admin'),
         password: configService.get('DB_PASSWORD', 'admin'),
-        database: configService.get('DB_NAME', 'agro_alertas'),
+  database: configService.get('DB_NAME', 'logs_db'),
         entities: [LogEntry],
         synchronize: configService.get('TYPEORM_SYNCHRONIZE', 'true') === 'true' || configService.get('NODE_ENV') !== 'production',
         namingStrategy: new SnakeNamingStrategy(),

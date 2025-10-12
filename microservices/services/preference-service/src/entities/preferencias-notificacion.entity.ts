@@ -1,10 +1,9 @@
 import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn } from "typeorm";
 
 export enum TipoCanal {
-  EMAIL = 'email',
-  SMS = 'sms',
-  PUSH = 'push',
-  WHATSAPP = 'whatsapp'
+  TELEGRAM = 'telegram',
+  GMAIL = 'gmail',
+  SMS = 'sms'
 }
 
 export enum TipoAlerta {

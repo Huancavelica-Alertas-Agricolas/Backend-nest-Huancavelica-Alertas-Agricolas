@@ -7,25 +7,20 @@ import { User } from './entities/user.entity';
 export class UserService {
   constructor(
     @InjectRepository(User)
-    private userRepository: Repository<User>,
+    private readonly userRepository: Repository<User>,
   ) {}
 
   async create(userData: any): Promise<User> {
     const user = this.userRepository.create(userData);
-    return await this.userRepository.save(user) as unknown as User;
+    return (await this.userRepository.save(user)) as unknown as User;
   }
 
   async findAll(): Promise<User[]> {
-    return await this.userRepository.find({
-      relations: ['projects'],
-    });
+    return await this.userRepository.find();
   }
 
   async findOne(id: number): Promise<User> {
-    return await this.userRepository.findOne({
-      where: { id },
-      relations: ['projects'],
-    });
+    return await this.userRepository.findOne({ where: { id } });
   }
 
   async update(id: number, userData: any): Promise<User> {
@@ -38,9 +33,6 @@ export class UserService {
   }
 
   async findByCode(code: string): Promise<User> {
-    return await this.userRepository.findOne({
-      where: { code },
-      relations: ['projects'],
-    });
+    return await this.userRepository.findOne({ where: { code } });
   }
 }

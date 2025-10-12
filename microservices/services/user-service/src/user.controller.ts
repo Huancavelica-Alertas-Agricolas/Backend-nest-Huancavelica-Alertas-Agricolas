@@ -1,7 +1,6 @@
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
 import { UserService } from './user.service';
-import { EstacionService } from './estacion.service';
 import { AlertaService } from './alerta.service';
 
 @Controller()
@@ -10,7 +9,6 @@ export class UserController {
 
   constructor(
     private readonly userService: UserService,
-    private readonly estacionService: EstacionService,
     private readonly alertaService: AlertaService,
   ) {}
 
@@ -45,30 +43,7 @@ export class UserController {
     return await this.userService.remove(id);
   }
 
-  // Estaciones operations
-  @MessagePattern('create_estacion')
-  async createEstacion(@Payload() estacionData: any) {
-    this.logger.log('Creating estacion:', estacionData);
-    return await this.estacionService.create(estacionData);
-  }
-
-  @MessagePattern('get_all_estaciones')
-  async getAllEstaciones() {
-    this.logger.log('Getting all estaciones');
-    return await this.estacionService.findAll();
-  }
-
-  @MessagePattern('get_estaciones_activas')
-  async getEstacionesActivas() {
-    this.logger.log('Getting active estaciones');
-    return await this.estacionService.findActivas();
-  }
-
-  @MessagePattern('get_estacion')
-  async getEstacion(@Payload() id: number) {
-    this.logger.log(`Getting estacion with id: ${id}`);
-    return await this.estacionService.findOne(id);
-  }
+  // Estaciones moved to alert-service / weather-service. Endpoints removed from user-service.
 
   // Alertas operations
   @MessagePattern('create_alerta')

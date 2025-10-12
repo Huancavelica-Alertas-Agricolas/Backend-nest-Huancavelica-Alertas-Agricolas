@@ -15,7 +15,14 @@
     "lint:check": "eslint \"{src,apps,libs,test}/**/*.ts\"",
     "test": "jest",
     "test:watch": "jest --watch",
-    "test:cov": "jest --coverage"
+    "test:cov": "jest --coverage",
+  "m:migrate": "node ./scripts/generate-migration.js",
+  "m:run": "ts-node -r tsconfig-paths/register ./node_modules/typeorm/cli.js migration:run -d ./src/data-source.ts"
+  },
+  "typeorm": {
+    "cli": {
+      "migrationsDir": "src/migrations"
+    }
   },
   "dependencies": {
     "@nestjs/common": "^10.3.10",
