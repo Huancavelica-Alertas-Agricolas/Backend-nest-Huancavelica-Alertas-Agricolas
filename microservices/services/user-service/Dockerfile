@@ -9,9 +9,9 @@ COPY . .
 WORKDIR /app/services/user-service
 RUN \
 	if [ -f package-lock.json ]; then \
-		npm ci --prefer-offline --no-audit --progress=false; \
+		npm ci --prefer-offline --no-audit --progress=false || (echo '--- NPM INSTALL FAILED - LOGS ---' && ls -la /root/.npm/_logs || true && cat /root/.npm/_logs/*.log || true; exit 1); \
 	else \
-		npm install --no-audit --progress=false; \
+		npm install --no-audit --progress=false || (echo '--- NPM INSTALL FAILED - LOGS ---' && ls -la /root/.npm/_logs || true && cat /root/.npm/_logs/*.log || true; exit 1); \
 	fi
 
 # Build the application and remove dev dependencies in one layer
