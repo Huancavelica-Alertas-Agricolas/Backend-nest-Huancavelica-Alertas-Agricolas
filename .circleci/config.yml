@@ -68,8 +68,17 @@ jobs:
       - run:
           name: Wait for postgres
           command: |
-            for i in $(seq 1 30); do
-              docker exec agro_postgres pg_isready -U ${DB_USER:-admin} -d ${DB_NAME:-agro_alertas} && break || sleep 2
+            set -e
+            echo "Waiting for Postgres containers to be healthy..."
+            for i in $(seq 1 60); do
+              ok=0
+              for c in agro_postgres_users agro_postgres_alerts agro_postgres_logs agro_postgres_preferences; do
+                status=$(docker inspect -f '{{.State.Health.Status}}' "$c" 2>/dev/null || echo 'starting')
+                echo "$c: $status"
+                if [ "$status" = "healthy" ]; then ok=$((ok+1)); fi
+              done
+              if [ "$ok" -eq 4 ]; then echo "All Postgres containers healthy"; break; fi
+              sleep 2
             done
       - run:
           name: Smoke tests
@@ -95,19 +104,31 @@ jobs:
       - run:
           name: Docker login
           command: |
-            echo "$DOCKERHUB_PASS" | docker login -u "$DOCKERHUB_USER" --password-stdin
+            if [ -n "$DOCKERHUB_USER" ] && [ -n "$DOCKERHUB_PASS" ]; then
+              echo "$DOCKERHUB_PASS" | docker login -u "$DOCKERHUB_USER" --password-stdin
+              echo "Docker login successful"
+              echo "PUSH_ENABLED=1" >> $BASH_ENV
+            else
+              echo "DockerHub credentials not set. Skipping login and image push."
+              echo "PUSH_ENABLED=0" >> $BASH_ENV
+            fi
       - run:
           name: Build and push service images
           command: |
             set -e
+            BUILD_CONTEXT="microservices"
             for svc in microservices/services/*; do
               if [ -f "$svc/Dockerfile" ]; then
                 name=$(basename "$svc")
-                # Use repo root as build context and the service Dockerfile explicitly
-                docker build -f "$svc/Dockerfile" -t ${DOCKERHUB_USER}/${name}:$CIRCLE_SHA1 .
-                docker push ${DOCKERHUB_USER}/${name}:$CIRCLE_SHA1
-                docker tag ${DOCKERHUB_USER}/${name}:$CIRCLE_SHA1 ${DOCKERHUB_USER}/${name}:latest
-                docker push ${DOCKERHUB_USER}/${name}:latest
+                # Use microservices/ as build context to match Dockerfiles (COPY .. .)
+                docker build -f "$svc/Dockerfile" -t ${DOCKERHUB_USER:-local}/${name}:$CIRCLE_SHA1 "$BUILD_CONTEXT"
+                if [ "$PUSH_ENABLED" = "1" ]; then
+                  docker push ${DOCKERHUB_USER}/${name}:$CIRCLE_SHA1
+                  docker tag ${DOCKERHUB_USER}/${name}:$CIRCLE_SHA1 ${DOCKERHUB_USER}/${name}:latest
+                  docker push ${DOCKERHUB_USER}/${name}:latest
+                else
+                  echo "Push disabled; built image ${DOCKERHUB_USER:-local}/${name}:$CIRCLE_SHA1 locally only"
+                fi
               fi
             done
           # retry settings removed from step; managed at workflow level
@@ -116,16 +137,32 @@ jobs:
     machine:
       image: ubuntu-2404:current
     steps:
+      - run:
+          name: Validate deploy variables
+          command: |
+            set -e
+            missing=()
+            for v in DEPLOY_USER DEPLOY_HOST DEPLOY_PATH DEPLOY_SSH_FP; do
+              if [ -z "${!v}" ]; then missing+=("$v"); fi
+            done
+            if [ ${#missing[@]} -gt 0 ]; then
+              echo "Skipping deploy-ssh; missing vars: ${missing[*]}"
+              echo "DEPLOY_SKIP=1" >> $BASH_ENV
+            else
+              echo "DEPLOY_SKIP=0" >> $BASH_ENV
+            fi
       - add_ssh_keys:
           fingerprints:
             - "$DEPLOY_SSH_FP"
       - run:
           name: Deploy via SSH
           command: |
-            ssh -o StrictHostKeyChecking=no $DEPLOY_USER@$DEPLOY_HOST "cd $DEPLOY_PATH && git pull origin main && docker compose pull && docker compose up -d --build"
+            if [ "$DEPLOY_SKIP" = "1" ]; then
+              echo "Deploy variables not set; skipping SSH deploy."; exit 0;
+            fi
+            ssh -o StrictHostKeyChecking=no "${DEPLOY_USER}@${DEPLOY_HOST}" "cd \"${DEPLOY_PATH}\" && git pull origin main && docker compose pull && docker compose up -d --build"
 
 workflows:
-  version: 2
   ci_on_main:
     max_auto_reruns: 3
     jobs:

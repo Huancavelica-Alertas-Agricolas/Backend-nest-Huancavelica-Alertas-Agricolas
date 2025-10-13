@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   # Postgres per service (one instance per microservice)
   postgres-users:
@@ -81,7 +79,7 @@ services:
   # API Gateway
   api-gateway:
     build:
-      context: ..
+      context: .
       dockerfile: gateway/api-gateway/Dockerfile
     container_name: agro_gateway_microservices
     ports:
@@ -114,7 +112,7 @@ services:
   # User Service
   user-service:
     build:
-      context: ..
+      context: .
       dockerfile: services/user-service/Dockerfile
     container_name: agro_user_service
     ports:
@@ -136,7 +134,7 @@ services:
   # Weather Service
   weather-service:
     build:
-      context: ..
+      context: .
       dockerfile: services/weather-service/Dockerfile
     container_name: agro_weather_service
     ports:
@@ -154,7 +152,7 @@ services:
   # Notification Service
   notification-service:
     build:
-      context: ..
+      context: .
       dockerfile: services/notification-service/Dockerfile
     container_name: agro_notification_service
     ports:
@@ -173,7 +171,7 @@ services:
   # Alert Service (Orchestrator)
   alert-service:
     build:
-      context: ..
+      context: .
       dockerfile: services/alert-service/Dockerfile
     container_name: agro_alert_service
     ports:
@@ -203,7 +201,7 @@ services:
   # Log Service
   log-service:
     build:
-      context: ..
+      context: .
       dockerfile: services/log-service/Dockerfile
     container_name: agro_log_service
     ports:
@@ -225,7 +223,7 @@ services:
   # Preference Service
   preference-service:
     build:
-      context: ..
+      context: .
       dockerfile: services/preference-service/Dockerfile
     container_name: agro_preference_service
     ports:
