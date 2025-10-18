@@ -1,74 +1,71 @@
-import { Injectable } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import { Alerta, TipoAlerta, EstadoAlerta } from './entities/alerta.entity';
-import { AlertCanal } from './entities/alert-canal.entity';
-import { Log } from './entities/log.entity';
+import { Injectable, Logger } from '@nestjs/common';
+import {
+  ClientProxy,
+  ClientProxyFactory,
+  Transport,
+} from '@nestjs/microservices';
+import { firstValueFrom } from 'rxjs';
 
 @Injectable()
 export class AlertaService {
-  constructor(
-    @InjectRepository(Alerta)
-    private alertaRepository: Repository<Alerta>,
-    @InjectRepository(AlertCanal)
-    private alertCanalRepository: Repository<AlertCanal>,
-    @InjectRepository(Log)
-    private logRepository: Repository<Log>,
-  ) {}
+  private readonly logger = new Logger(AlertaService.name);
+  private readonly client: ClientProxy;
 
-  async create(alertaData: any): Promise<Alerta> {
-    const alerta = this.alertaRepository.create({
-      ...alertaData,
-      timestamp: new Date(),
-      estado: EstadoAlerta.ACTIVA,
-    });
-    return await this.alertaRepository.save(alerta) as unknown as Alerta;
-  }
-
-  async findAll(): Promise<Alerta[]> {
-    return await this.alertaRepository.find({
-      relations: ['estacion', 'usuario', 'canales', 'logs'],
-      order: { timestamp: 'DESC' },
+  constructor() {
+    // create a TCP client that will talk to the alert-service microservice
+    this.client = ClientProxyFactory.create({
+      transport: Transport.TCP,
+      options: {
+        host: process.env.ALERT_SERVICE_HOST || 'localhost',
+        port: Number(process.env.ALERT_SERVICE_PORT) || 3004,
+      },
     });
   }
 
-  async findByUser(usuarioId: number): Promise<Alerta[]> {
-    return await this.alertaRepository.find({
-      where: { usuarioId },
-      relations: ['estacion', 'canales', 'logs'],
-      order: { timestamp: 'DESC' },
-    });
+  async create(alertaData: unknown): Promise<unknown> {
+    this.logger.log('Forwarding create alerta to alert-service');
+    return await firstValueFrom(this.client.send('create_alerta', alertaData));
   }
 
-  async findActivas(): Promise<Alerta[]> {
-    return await this.alertaRepository.find({
-      where: { estado: EstadoAlerta.ACTIVA },
-      relations: ['estacion', 'usuario', 'canales'],
-      order: { timestamp: 'DESC' },
-    });
+  async findAll(): Promise<unknown> {
+    this.logger.log('Requesting all alertas from alert-service');
+    return await firstValueFrom(this.client.send('get_all_alertas', {}));
   }
 
-  async updateEstado(id: number, estado: EstadoAlerta): Promise<Alerta> {
-    await this.alertaRepository.update(id, { estado });
-    return await this.alertaRepository.findOne({ 
-      where: { id },
-      relations: ['estacion', 'usuario', 'canales', 'logs'] 
-    });
+  async findByUser(usuarioId: number): Promise<unknown> {
+    this.logger.log(
+      `Requesting alertas for user ${usuarioId} from alert-service`,
+    );
+    return await firstValueFrom(
+      this.client.send('get_user_alertas', usuarioId),
+    );
   }
 
-  async createLog(logData: any): Promise<Log> {
-    const log = this.logRepository.create({
-      ...logData,
-      deliveredAt: new Date(),
-    });
-    return await this.logRepository.save(log) as unknown as Log;
+  async findActivas(): Promise<unknown> {
+    this.logger.log('Requesting active alertas from alert-service');
+    return await firstValueFrom(this.client.send('get_alertas_activas', {}));
   }
 
-  async addCanal(alertaId: number, canalData: any): Promise<AlertCanal> {
-    const canal = this.alertCanalRepository.create({
-      ...canalData,
-      alertaId,
-    });
-    return await this.alertCanalRepository.save(canal) as unknown as AlertCanal;
+  async updateEstado(id: number, estado: string): Promise<unknown> {
+    this.logger.log(
+      `Forwarding update estado for alerta ${id} to alert-service`,
+    );
+    return await firstValueFrom(
+      this.client.send('update_alerta_estado', { id, estado }),
+    );
+  }
+
+  async createLog(logData: unknown): Promise<unknown> {
+    this.logger.log('Forwarding create log to alert-service');
+    return await firstValueFrom(this.client.send('create_log', logData));
+  }
+
+  async addCanal(alertaId: number, canalData: unknown): Promise<unknown> {
+    this.logger.log(
+      `Forwarding add canal for alerta ${alertaId} to alert-service`,
+    );
+    return await firstValueFrom(
+      this.client.send('add_canal', { alertaId, canalData }),
+    );
   }
 }

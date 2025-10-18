@@ -19,6 +19,7 @@
     "@nestjs/core": "^11.1.6",
     "@nestjs/microservices": "^11.1.6",
     "@types/nodemailer": "^7.0.1",
+    "agro-alertas-microservices": "file:../../..",
     "handlebars": "^4.7.8",
     "nodemailer": "^7.0.6",
     "reflect-metadata": "^0.2.2",
@@ -27,6 +28,6 @@
   "devDependencies": {
     "@nestjs/cli": "^11.0.0",
     "@types/node": "^22.10.7",
-    "typescript": "^5.7.3"
+    "typescript": "4.9.5"
   }
 }

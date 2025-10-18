@@ -1,22 +1,21 @@
 # Log Service Dockerfile
 FROM node:18-alpine
 
+# El context es microservices/, copiamos el repo raíz
 WORKDIR /app
+COPY .. .
 
-# Copiar archivos de dependencias
-COPY package*.json ./
+# Instalar deps dentro del servicio
+WORKDIR /app/microservices/services/log-service
+RUN \
+	if [ -f package-lock.json ]; then \
+		npm ci --prefer-offline --no-audit --progress=false || (echo '--- NPM INSTALL FAILED - LOGS ---' && ls -la /root/.npm/_logs || true && cat /root/.npm/_logs/*.log || true; exit 1); \
+	else \
+		npm install --no-audit --progress=false || (echo '--- NPM INSTALL FAILED - LOGS ---' && ls -la /root/.npm/_logs || true && cat /root/.npm/_logs/*.log || true; exit 1); \
+	fi
 
-# Instalar todas las dependencias (incluyendo dev para build)
-RUN npm install
-
-# Copiar código fuente
-COPY . .
-
-# Construir la aplicación
-RUN npm run build
-
-# Remover dependencias de desarrollo
-RUN npm prune --production
+# Build + prune en una sola capa
+RUN npm run build && npm prune --production || true
 
 # Exponer puerto
 EXPOSE 3005

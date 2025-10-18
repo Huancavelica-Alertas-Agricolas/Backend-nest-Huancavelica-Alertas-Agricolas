@@ -1,22 +1,77 @@
-version: '3.8'
-
 services:
-  # Base de datos PostgreSQL
-  postgres:
+  # Postgres per service (one instance per microservice)
+  postgres-users:
     image: postgres:15
-    container_name: agro_postgres_microservices
+    container_name: agro_postgres_users
     environment:
       POSTGRES_USER: admin
       POSTGRES_PASSWORD: admin
-      POSTGRES_DB: agro_alertas
+      POSTGRES_DB: users_db
     ports:
-      - "5434:5432"  # Puerto diferente para evitar conflictos
+      - "5435:5432"
     volumes:
-      - postgres_microservices_data:/var/lib/postgresql/data
+      - postgres_users_data:/var/lib/postgresql/data
     networks:
       - agro-microservices-network
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U admin -d agro_alertas"]
+      test: ["CMD-SHELL", "pg_isready -U admin -d users_db"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  postgres-alerts:
+    image: postgres:15
+    container_name: agro_postgres_alerts
+    environment:
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: admin
+      POSTGRES_DB: alerts_db
+    ports:
+      - "5436:5432"
+    volumes:
+      - postgres_alerts_data:/var/lib/postgresql/data
+    networks:
+      - agro-microservices-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U admin -d alerts_db"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  postgres-logs:
+    image: postgres:15
+    container_name: agro_postgres_logs
+    environment:
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: admin
+      POSTGRES_DB: logs_db
+    ports:
+      - "5437:5432"
+    volumes:
+      - postgres_logs_data:/var/lib/postgresql/data
+    networks:
+      - agro-microservices-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U admin -d logs_db"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  postgres-preferences:
+    image: postgres:15
+    container_name: agro_postgres_preferences
+    environment:
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: admin
+      POSTGRES_DB: preferences_db
+    ports:
+      - "5438:5432"
+    volumes:
+      - postgres_preferences_data:/var/lib/postgresql/data
+    networks:
+      - agro-microservices-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U admin -d preferences_db"]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -24,8 +79,8 @@ services:
   # API Gateway
   api-gateway:
     build:
-      context: ./gateway/api-gateway
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: gateway/api-gateway/Dockerfile
     container_name: agro_gateway_microservices
     ports:
       - "3000:3000"
@@ -57,22 +112,21 @@ services:
   # User Service
   user-service:
     build:
-      context: ./services/user-service
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: services/user-service/Dockerfile
     container_name: agro_user_service
     ports:
       - "3001:3001"
     environment:
       - NODE_ENV=development
       - PORT=3001
-      - DB_HOST=postgres
+      - DB_HOST=postgres-users
       - DB_PORT=5432
       - DB_USER=admin
       - DB_PASSWORD=admin
-      - DB_NAME=agro_alertas
+      - DB_NAME=users_db
     depends_on:
-      postgres:
-        condition: service_healthy
+      - postgres-users
     networks:
       - agro-microservices-network
     restart: unless-stopped
@@ -80,8 +134,8 @@ services:
   # Weather Service
   weather-service:
     build:
-      context: ./services/weather-service
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: services/weather-service/Dockerfile
     container_name: agro_weather_service
     ports:
       - "3002:3002"
@@ -98,8 +152,8 @@ services:
   # Notification Service
   notification-service:
     build:
-      context: ./services/notification-service
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: services/notification-service/Dockerfile
     container_name: agro_notification_service
     ports:
       - "3003:3003"
@@ -117,8 +171,8 @@ services:
   # Alert Service (Orchestrator)
   alert-service:
     build:
-      context: ./services/alert-service
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: services/alert-service/Dockerfile
     container_name: agro_alert_service
     ports:
       - "3004:3004"
@@ -131,10 +185,15 @@ services:
       - NOTIFICATION_SERVICE_PORT=3003
       - LOG_SERVICE_HOST=log-service
       - LOG_SERVICE_PORT=3005
+      - DB_HOST=postgres-alerts
+      - DB_PORT=5432
+      - DB_USER=admin
+      - DB_PASSWORD=admin
+      - DB_NAME=alerts_db
     depends_on:
       - weather-service
       - notification-service
-      - log-service
+      - postgres-alerts
     networks:
       - agro-microservices-network
     restart: unless-stopped
@@ -142,22 +201,21 @@ services:
   # Log Service
   log-service:
     build:
-      context: ./services/log-service
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: services/log-service/Dockerfile
     container_name: agro_log_service
     ports:
       - "3005:3005"
     environment:
       - NODE_ENV=development
       - PORT=3005
-      - DB_HOST=postgres
+      - DB_HOST=postgres-logs
       - DB_PORT=5432
       - DB_USER=admin
       - DB_PASSWORD=admin
-      - DB_NAME=agro_alertas
+      - DB_NAME=logs_db
     depends_on:
-      postgres:
-        condition: service_healthy
+      - postgres-logs
     networks:
       - agro-microservices-network
     restart: unless-stopped
@@ -165,28 +223,30 @@ services:
   # Preference Service
   preference-service:
     build:
-      context: ./services/preference-service
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: services/preference-service/Dockerfile
     container_name: agro_preference_service
     ports:
       - "3006:3006"
     environment:
       - NODE_ENV=development
       - PORT=3006
-      - DB_HOST=postgres
+      - DB_HOST=postgres-preferences
       - DB_PORT=5432
       - DB_USER=admin
       - DB_PASSWORD=admin
-      - DB_NAME=agro_alertas
+      - DB_NAME=preferences_db
     depends_on:
-      postgres:
-        condition: service_healthy
+      - postgres-preferences
     networks:
       - agro-microservices-network
     restart: unless-stopped
 
 volumes:
-  postgres_microservices_data:
+  postgres_users_data:
+  postgres_alerts_data:
+  postgres_logs_data:
+  postgres_preferences_data:
   weather_reports:
 
 networks:

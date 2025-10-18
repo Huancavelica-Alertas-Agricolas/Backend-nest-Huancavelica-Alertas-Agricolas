@@ -1,7 +1,7 @@
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
 import { UserService } from './user.service';
-import { EstacionService } from './estacion.service';
+import { User } from './entities/user.entity';
 import { AlertaService } from './alerta.service';
 
 @Controller()
@@ -10,15 +10,14 @@ export class UserController {
 
   constructor(
     private readonly userService: UserService,
-    private readonly estacionService: EstacionService,
     private readonly alertaService: AlertaService,
   ) {}
 
   // User operations
   @MessagePattern('create_user')
-  async createUser(@Payload() userData: any) {
+  async createUser(@Payload() userData: unknown) {
     this.logger.log('Creating user:', userData);
-    return await this.userService.create(userData);
+    return await this.userService.create(userData as Partial<User>);
   }
 
   @MessagePattern('get_user')
@@ -34,7 +33,7 @@ export class UserController {
   }
 
   @MessagePattern('update_user')
-  async updateUser(@Payload() data: { id: number; userData: any }) {
+  async updateUser(@Payload() data: { id: number; userData: Partial<User> }) {
     this.logger.log(`Updating user ${data.id}:`, data.userData);
     return await this.userService.update(data.id, data.userData);
   }
@@ -45,34 +44,11 @@ export class UserController {
     return await this.userService.remove(id);
   }
 
-  // Estaciones operations
-  @MessagePattern('create_estacion')
-  async createEstacion(@Payload() estacionData: any) {
-    this.logger.log('Creating estacion:', estacionData);
-    return await this.estacionService.create(estacionData);
-  }
-
-  @MessagePattern('get_all_estaciones')
-  async getAllEstaciones() {
-    this.logger.log('Getting all estaciones');
-    return await this.estacionService.findAll();
-  }
-
-  @MessagePattern('get_estaciones_activas')
-  async getEstacionesActivas() {
-    this.logger.log('Getting active estaciones');
-    return await this.estacionService.findActivas();
-  }
-
-  @MessagePattern('get_estacion')
-  async getEstacion(@Payload() id: number) {
-    this.logger.log(`Getting estacion with id: ${id}`);
-    return await this.estacionService.findOne(id);
-  }
+  // Estaciones moved to alert-service / weather-service. Endpoints removed from user-service.
 
   // Alertas operations
   @MessagePattern('create_alerta')
-  async createAlerta(@Payload() alertaData: any) {
+  async createAlerta(@Payload() alertaData: unknown) {
     this.logger.log('Creating alerta:', alertaData);
     return await this.alertaService.create(alertaData);
   }
@@ -98,11 +74,11 @@ export class UserController {
   @MessagePattern('update_alerta_estado')
   async updateAlertaEstado(@Payload() data: { id: number; estado: string }) {
     this.logger.log(`Updating alerta ${data.id} estado to: ${data.estado}`);
-    return await this.alertaService.updateEstado(data.id, data.estado as any);
+    return await this.alertaService.updateEstado(data.id, data.estado);
   }
 
   @MessagePattern('create_log')
-  async createLog(@Payload() logData: any) {
+  async createLog(@Payload() logData: unknown) {
     this.logger.log('Creating log:', logData);
     return await this.alertaService.createLog(logData);
   }

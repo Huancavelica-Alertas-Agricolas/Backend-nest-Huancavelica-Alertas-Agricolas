@@ -1,9 +1,12 @@
-import { Entity, PrimaryGeneratedColumn, Column, OneToMany, CreateDateColumn, UpdateDateColumn } from "typeorm";
-import { Alerta } from "./alerta.entity";
-import { Log } from "./log.entity";
-import { PreferenciasNotificacion } from "./preferencias-notificacion.entity";
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  CreateDateColumn,
+  UpdateDateColumn,
+} from 'typeorm';
 
-@Entity("usuarios")
+@Entity('usuarios')
 export class User {
   @PrimaryGeneratedColumn()
   id: number;
@@ -26,14 +29,16 @@ export class User {
   @Column({ default: true })
   activo: boolean;
 
-  @OneToMany(() => Alerta, (alerta) => alerta.usuario)
-  alertas: Alerta[];
+  // alertas, logs and preferencias are now owned by their respective services.
+  // Keep lightweight references (ids) if needed, avoid importing entities from other services.
+  @Column('int', { nullable: true })
+  ultimaAlertaId?: number;
 
-  @OneToMany(() => Log, (log) => log.usuario)
-  logs: Log[];
+  @Column('int', { nullable: true })
+  ultimoLogId?: number;
 
-  @OneToMany(() => PreferenciasNotificacion, (pref) => pref.usuario)
-  preferenciasNotificacion: PreferenciasNotificacion[];
+  @Column({ nullable: true })
+  preferenciasNotificacionSummary?: string; // JSON or brief summary, stored locally if needed
 
   @CreateDateColumn()
   createdAt: Date;

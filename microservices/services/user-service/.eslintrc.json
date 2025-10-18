@@ -5,9 +5,8 @@
     "tsconfigRootDir": ".",
     "sourceType": "module"
   },
-  "plugins": ["@typescript-eslint/eslint-plugin"],
+  "plugins": ["@typescript-eslint", "prettier"],
   "extends": [
-    "@nestjs",
     "plugin:@typescript-eslint/recommended",
     "plugin:prettier/recommended"
   ],

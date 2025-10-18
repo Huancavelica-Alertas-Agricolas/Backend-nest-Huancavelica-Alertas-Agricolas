@@ -1,0 +1,21 @@
+# Ignore everything by default except what is needed
+node_modules
+**/node_modules
+npm-debug.log*
+Dockerfile
+.dockerignore
+.git
+.gitignore
+.circleci
+**/*.md
+**/dist
+**/.DS_Store
+**/coverage
+**/.vscode
+**/.idea
+**/.husky
+**/.cache
+**/tmp
+**/*.log
+**/reports
+**/*.local

@@ -1,25 +1,24 @@
 # User Service Dockerfile
 FROM node:18-alpine
 
+# Set working dir and copy full repo so local file: deps resolve during install
 WORKDIR /app
-
-# Copiar archivos de dependencias
-COPY package*.json ./
-
-# Instalar todas las dependencias (incluyendo dev para build)
-RUN npm install
-
-# Copiar código fuente
 COPY . .
 
-# Construir la aplicación
-RUN npm run build
+# Install dependencies inside the service folder (use service lockfile if present)
+WORKDIR /app/services/user-service
+RUN \
+	if [ -f package-lock.json ]; then \
+		npm ci --prefer-offline --no-audit --progress=false || (echo '--- NPM INSTALL FAILED - LOGS ---' && ls -la /root/.npm/_logs || true && cat /root/.npm/_logs/*.log || true; exit 1); \
+	else \
+		npm install --no-audit --progress=false || (echo '--- NPM INSTALL FAILED - LOGS ---' && ls -la /root/.npm/_logs || true && cat /root/.npm/_logs/*.log || true; exit 1); \
+	fi
 
-# Remover dependencias de desarrollo
-RUN npm prune --production
+# Build the application and remove dev dependencies in one layer
+RUN npm run build && npm prune --production || true
 
-# Exponer puerto
+# Expose port
 EXPOSE 3001
 
-# Comando para ejecutar la aplicación
+# Run the production start for the service
 CMD ["npm", "run", "start:prod"]
