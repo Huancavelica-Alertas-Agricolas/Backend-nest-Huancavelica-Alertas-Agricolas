@@ -1,11 +1,11 @@
 FROM node:18-alpine
 
-# Copiar todo el monorepo para resolver dependencias locales correctamente
+# El context es microservices/, copiamos el repo raíz
 WORKDIR /app
-COPY . .
+COPY .. .
 
-# Instalar dependencias dentro del subdirectorio del servicio
-WORKDIR /app/services/preference-service
+# Instalar dentro del servicio
+WORKDIR /app/microservices/services/preference-service
 RUN \
 	if [ -f package-lock.json ]; then \
 		npm ci --prefer-offline --no-audit --progress=false || (echo '--- NPM INSTALL FAILED - LOGS ---' && ls -la /root/.npm/_logs || true && cat /root/.npm/_logs/*.log || true; exit 1); \
