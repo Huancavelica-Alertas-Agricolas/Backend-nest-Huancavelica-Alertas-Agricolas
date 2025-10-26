@@ -16,7 +16,17 @@
     "docker:logs": "docker-compose logs -f",
     "docker:build": "docker-compose build"
   },
-  "keywords": ["microservices", "nestjs", "agriculture", "weather", "alerts"],
+  "keywords": [
+    "microservices",
+    "nestjs",
+    "agriculture",
+    "weather",
+    "alerts"
+  ],
   "author": "Agro-Alertas Team",
-  "license": "MIT"
+  "license": "MIT",
+  "dependencies": {
+    "@willsoto/nestjs-prometheus": "^6.0.2",
+    "prom-client": "^15.1.3"
+  }
 }

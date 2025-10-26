@@ -1,18 +1,18 @@
+import { Logger, ValidationPipe } from '@nestjs/common';
+import { AllExceptionsFilter } from './all-exceptions.filter';
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
-import { Logger, ValidationPipe } from '@nestjs/common';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import helmet from 'helmet';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
-  
-  // Security
+  const logger = new Logger('API-Gateway');
+  const app = await NestFactory.create(AppModule, { logger });
+  app.useGlobalPipes(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true }));
+  app.useGlobalFilters(new AllExceptionsFilter(console));
   app.use(helmet());
-  
-  // CORS
   app.enableCors({
-    origin: process.env.ALLOWED_ORIGINS?.split(',') || ['http://localhost:3000'],
+    origin: ['http://localhost:3000'],
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
     credentials: true,
   });

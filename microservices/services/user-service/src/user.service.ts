@@ -11,7 +11,43 @@ export class UserService {
   ) {}
 
   async create(userData: DeepPartial<User>): Promise<User> {
-    const user = this.userRepository.create(userData);
+    // Validaciones básicas de duplicados
+    if (userData.code) {
+      const existingByCode = await this.userRepository.findOne({ where: { code: userData.code } });
+      if (existingByCode) {
+        // Retornar el existente para que la capa superior decida el mensaje
+        return existingByCode;
+      }
+    }
+
+    if (userData.email) {
+      const existingByEmail = await this.userRepository.findOne({ where: { email: userData.email } });
+      if (existingByEmail) {
+        return existingByEmail;
+      }
+    }
+
+    // Mapear todos los campos explícitamente para asegurar que se almacenen
+    const user = this.userRepository.create({
+      code: userData.code,
+      nombre: userData.nombre,
+      email: userData.email,
+      telefono: userData.telefono,
+      ciudad: userData.ciudad,
+      terreno: userData.terreno,
+      cultivo: userData.cultivo,
+      frecuencia: userData.frecuencia,
+      anio_objetivo: userData.anio_objetivo,
+      canal: userData.canal,
+      experiencia: userData.experiencia,
+      recibe_alertas: userData.recibe_alertas,
+      importancia: userData.importancia,
+      observaciones: userData.observaciones,
+      activo: userData.activo,
+      ultimaAlertaId: userData.ultimaAlertaId,
+      ultimoLogId: userData.ultimoLogId,
+      preferenciasNotificacionSummary: userData.preferenciasNotificacionSummary
+    });
     return await this.userRepository.save(user);
   }
 
@@ -34,5 +70,9 @@ export class UserService {
 
   async findByCode(code: string): Promise<User> {
     return await this.userRepository.findOne({ where: { code } });
+  }
+
+  async findByEmail(email: string): Promise<User> {
+    return await this.userRepository.findOne({ where: { email } });
   }
 }

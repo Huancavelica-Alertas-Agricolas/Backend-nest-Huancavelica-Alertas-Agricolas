@@ -1,7 +1,9 @@
+import { ValidationPipe } from '@nestjs/common';
+import { AllExceptionsFilter } from './all-exceptions.filter';
 import { NestFactory } from '@nestjs/core';
 import { MicroserviceOptions, Transport } from '@nestjs/microservices';
 import { AppModule } from './app.module';
-import { Logger } from '@nestjs/common';
+import logger from './logger';
 
 async function bootstrap() {
   const app = await NestFactory.createMicroservice<MicroserviceOptions>(AppModule, {
@@ -11,9 +13,10 @@ async function bootstrap() {
       port: parseInt(process.env.PORT) || 3003,
     },
   });
-
+  app.useGlobalPipes(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true }));
+  app.useGlobalFilters(new AllExceptionsFilter(logger));
   await app.listen();
-  Logger.log('📧 Notification Service is listening on port 3003');
+  logger.info('📧 Notification Service is listening on port 3003');
 }
 
 bootstrap();

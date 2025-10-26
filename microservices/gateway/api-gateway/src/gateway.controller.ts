@@ -1,4 +1,5 @@
 import { Controller, Get, Post, Body, Inject, Logger, Param } from '@nestjs/common';
+import axios from 'axios';
 import { ClientProxy } from '@nestjs/microservices';
 import { firstValueFrom } from 'rxjs';
 
@@ -45,7 +46,64 @@ export class GatewayController {
   @Post('users')
   async createUser(@Body() userData: any) {
     this.logger.log('Creating user via gateway');
-    return await firstValueFrom(this.userService.send('create_user', userData));
+    // Si llega dni desde el frontend, mapear a code
+    const payload = {
+      ...userData,
+      code: userData.code || userData.dni || userData.documento || userData.email,
+      ciudad: userData.ciudad || userData.provincia || userData.ubicacion || 'Desconocido',
+    };
+    // 1) Verificar duplicados de manera preventiva para decidir envío de bienvenida
+    let isDuplicate = false;
+    try {
+      if (payload.email) {
+        const existingByEmail = await firstValueFrom(this.userService.send('get_user_by_email', payload.email));
+        if (existingByEmail && existingByEmail.id) isDuplicate = true;
+      }
+      if (!isDuplicate && payload.code) {
+        const existingByCode = await firstValueFrom(this.userService.send('get_user_by_code', payload.code));
+        if (existingByCode && existingByCode.id) isDuplicate = true;
+      }
+    } catch (e) {
+      this.logger.warn(`No se pudo verificar duplicados antes de crear: ${e.message}`);
+    }
+
+    // 2) Crear (idempotente en user-service)
+    const created = await firstValueFrom(this.userService.send('create_user', payload));
+
+    // 3) Enviar email de bienvenida solo si no es duplicado y hay email
+    if (!isDuplicate && created?.email) {
+      const useN8n = (process.env.USE_N8N_FOR_EMAIL || 'false').toLowerCase() === 'true';
+      try {
+        if (useN8n) {
+          // Enviar a n8n por webhook: tipo = welcome
+          const webhookUrl = process.env.N8N_WEBHOOK_URL || 'http://localhost:5678/webhook/clima-alerta';
+          const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+          const secret = process.env.N8N_WEBHOOK_SECRET;
+          if (secret) headers['x-n8n-signature'] = secret;
+          await axios.post(webhookUrl, {
+            tipo: 'welcome',
+            fecha: new Date().toISOString(),
+            descripcion: 'Bienvenida a la plataforma Agro-Alertas',
+            recipients: [created.email],
+            nombre: created.nombre || 'Usuario',
+          }, { headers });
+          this.logger.log(`Bienvenida enviada a n8n para ${created.email}`);
+        } else {
+          // Enviar directo por notification-service
+          this.logger.log(`Enviando email de bienvenida a ${created.email}`);
+          await firstValueFrom(
+            this.notificationService.send('send_welcome_email', {
+              to: created.email,
+              name: created.nombre || 'Usuario',
+            }),
+          );
+        }
+      } catch (e) {
+        this.logger.error(`Error enviando email de bienvenida: ${e.message}`);
+      }
+    }
+
+    return created;
   }
 
   @Get('users')
@@ -58,6 +116,19 @@ export class GatewayController {
   async getUser(@Param('id') id: number) {
     this.logger.log(`Getting user ${id} via gateway`);
     return await firstValueFrom(this.userService.send('get_user', id));
+  }
+
+  // Validaciones de duplicado
+  @Get('users/by-code/:code')
+  async getUserByCode(@Param('code') code: string) {
+    this.logger.log(`Getting user by code ${code} via gateway`);
+    return await firstValueFrom(this.userService.send('get_user_by_code', code));
+  }
+
+  @Get('users/by-email/:email')
+  async getUserByEmail(@Param('email') email: string) {
+    this.logger.log(`Getting user by email ${email} via gateway`);
+    return await firstValueFrom(this.userService.send('get_user_by_email', email));
   }
 
   // Estaciones endpoints
@@ -117,6 +188,12 @@ export class GatewayController {
     return await firstValueFrom(this.weatherService.send('get_weather_data', {}));
   }
 
+  @Get('weather/clima-alerts')
+  async getClimateAlerts() {
+    this.logger.log('Generating climate alerts via gateway');
+    return await firstValueFrom(this.weatherService.send('get_climate_alerts', {}));
+  }
+
   // Notification Service endpoints
   @Post('notifications/email')
   async sendEmail(@Body() emailData: any) {
@@ -153,6 +230,20 @@ export class GatewayController {
   async generateWeatherAlert(@Body() alertData: any) {
     this.logger.log('Generating weather alert via gateway');
     return await firstValueFrom(this.alertService.send('generate_weather_alert', alertData));
+  }
+
+  @Post('alerts/test-climate')
+  async testClimateAlert() {
+    this.logger.log('Testing climate alert system');
+    
+    // Generar una alerta de prueba que active el flujo completo
+    const testAlertData = {
+      tipo: 'helada',
+      fecha: new Date().toISOString(),
+      descripcion: '⚠️ PRUEBA: Alerta de helada detectada. Temperaturas mínimas esperadas entre -2°C y 2°C en las próximas 24 horas.'
+    };
+    
+    return await firstValueFrom(this.alertService.send('generate_weather_alert', testAlertData));
   }
 
   // Legacy endpoint from original project

@@ -2,7 +2,8 @@ import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateCol
 
 export enum TipoCanal {
   TELEGRAM = 'telegram',
-  GMAIL = 'gmail',
+  EMAIL = 'email',
+  GMAIL = 'gmail', // compatibilidad histórica
   SMS = 'sms'
 }
 

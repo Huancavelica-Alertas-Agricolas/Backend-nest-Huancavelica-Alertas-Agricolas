@@ -24,14 +24,17 @@ let AlertController = AlertController_1 = class AlertController {
     }
     async generateWeatherAlert(alertRequest) {
         this.logger.log('Procesando solicitud de alerta meteorológica:', alertRequest);
-        return await this.alertService.generateWeatherAlert(alertRequest);
+        return await this.alertService.processClimateAlert(alertRequest);
     }
     async generateFrostAlert(alertRequest) {
         this.logger.log('Procesando solicitud de alerta de helada:', alertRequest);
         return await this.alertService.generateFrostAlert(alertRequest);
     }
+    async processClimateAlert(alertData) {
+        this.logger.log('Procesando alerta climática desde weather-service:', alertData);
+        return await this.alertService.processClimateAlert(alertData);
+    }
 };
-exports.AlertController = AlertController;
 __decorate([
     (0, microservices_1.MessagePattern)('generate_weather_alert'),
     __param(0, (0, microservices_1.Payload)()),
@@ -46,8 +49,16 @@ __decorate([
     __metadata("design:paramtypes", [Object]),
     __metadata("design:returntype", Promise)
 ], AlertController.prototype, "generateFrostAlert", null);
-exports.AlertController = AlertController = AlertController_1 = __decorate([
+__decorate([
+    (0, microservices_1.MessagePattern)('process_climate_alert'),
+    __param(0, (0, microservices_1.Payload)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object]),
+    __metadata("design:returntype", Promise)
+], AlertController.prototype, "processClimateAlert", null);
+AlertController = AlertController_1 = __decorate([
     (0, common_1.Controller)(),
     __metadata("design:paramtypes", [alert_service_1.AlertService])
 ], AlertController);
+exports.AlertController = AlertController;
 //# sourceMappingURL=alert.controller.js.map

@@ -1,4 +1,5 @@
 import { Module } from '@nestjs/common';
+import { PrometheusModule } from '@willsoto/nestjs-prometheus';
 import { ClientsModule, Transport } from '@nestjs/microservices';
 import { ConfigModule } from '@nestjs/config';
 import { ThrottlerModule } from '@nestjs/throttler';
@@ -63,6 +64,7 @@ import { GatewayController } from './gateway.controller';
         },
       },
     ]),
+    PrometheusModule.register(),
   ],
   controllers: [GatewayController],
 })

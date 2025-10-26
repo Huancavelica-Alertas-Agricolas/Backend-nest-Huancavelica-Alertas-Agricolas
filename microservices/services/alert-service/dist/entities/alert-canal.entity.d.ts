@@ -1,9 +1,8 @@
 import type { Alert } from "./alert.entity";
 export declare enum TipoCanal {
-    EMAIL = "email",
-    SMS = "sms",
-    PUSH = "push",
-    WEBHOOK = "webhook"
+    TELEGRAM = "telegram",
+    GMAIL = "gmail",
+    SMS = "sms"
 }
 export declare enum EstadoEnvio {
     PENDIENTE = "pendiente",

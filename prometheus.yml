@@ -1,0 +1,25 @@
+global:
+  scrape_interval: 15s
+
+scrape_configs:
+  - job_name: 'user-service'
+    static_configs:
+      - targets: ['user-service:3001']
+  - job_name: 'alert-service'
+    static_configs:
+      - targets: ['alert-service:3004']
+  - job_name: 'log-service'
+    static_configs:
+      - targets: ['log-service:3005']
+  - job_name: 'notification-service'
+    static_configs:
+      - targets: ['notification-service:3003']
+  - job_name: 'preference-service'
+    static_configs:
+      - targets: ['preference-service:3006']
+  - job_name: 'weather-service'
+    static_configs:
+      - targets: ['weather-service:3002']
+  - job_name: 'api-gateway'
+    static_configs:
+      - targets: ['api-gateway:3000']

@@ -40,6 +40,33 @@ export class User {
   @Column({ nullable: true })
   preferenciasNotificacionSummary?: string; // JSON or brief summary, stored locally if needed
 
+  @Column({ nullable: true })
+  terreno?: string;
+
+  @Column({ nullable: true })
+  cultivo?: string;
+
+  @Column({ nullable: true })
+  frecuencia?: string;
+
+  @Column({ nullable: true })
+  anio_objetivo?: string;
+
+  @Column({ nullable: true })
+  canal?: string;
+
+  @Column({ nullable: true })
+  experiencia?: string;
+
+  @Column({ nullable: true })
+  recibe_alertas?: string;
+
+  @Column({ nullable: true })
+  importancia?: string;
+
+  @Column({ nullable: true })
+  observaciones?: string;
+
   @CreateDateColumn()
   createdAt: Date;
 

@@ -1,4 +1,5 @@
 import { Module } from '@nestjs/common';
+import { PrometheusModule } from '@willsoto/nestjs-prometheus';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { PreferenceController } from './preference.controller';
 import { PreferenceService } from './preference.service';
@@ -17,6 +18,7 @@ import { PreferenciasNotificacion } from './entities/preferencias-notificacion.e
       synchronize: true,
     }),
     TypeOrmModule.forFeature([PreferenciasNotificacion]),
+    PrometheusModule.register(),
   ],
   controllers: [PreferenceController],
   providers: [PreferenceService],

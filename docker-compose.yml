@@ -1,22 +1,118 @@
+version: '2.4'
 services:
   # ================================
   # BASE DE DATOS
   # ================================
-  postgres:
+  user_postgres:
     image: postgres:15
-    container_name: agro_postgres
+    container_name: agro_user_postgres
     environment:
-      POSTGRES_USER: ${DB_USER:-admin}
-      POSTGRES_PASSWORD: ${DB_PASSWORD:-admin}
-      POSTGRES_DB: ${DB_NAME:-agro_alertas}
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: admin
+      POSTGRES_DB: user_db
     ports:
-      - "5433:5432"
+      - "5434:5432"
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - user_postgres_data:/var/lib/postgresql/data
     networks:
       - agro-network
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U admin -d agro_alertas"]
+      test: ["CMD-SHELL", "pg_isready -U admin -d user_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  alert_postgres:
+    image: postgres:15
+    container_name: agro_alert_postgres
+    environment:
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: admin
+      POSTGRES_DB: alert_db
+    ports:
+      - "5435:5432"
+    volumes:
+      - alert_postgres_data:/var/lib/postgresql/data
+    networks:
+      - agro-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U admin -d alert_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  log_postgres:
+    image: postgres:15
+    container_name: agro_log_postgres
+    environment:
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: admin
+      POSTGRES_DB: log_db
+    ports:
+      - "5436:5432"
+    volumes:
+      - log_postgres_data:/var/lib/postgresql/data
+    networks:
+      - agro-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U admin -d log_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  preference_postgres:
+    image: postgres:15
+    container_name: agro_preference_postgres
+    environment:
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: admin
+      POSTGRES_DB: preference_db
+    ports:
+      - "5437:5432"
+    volumes:
+      - preference_postgres_data:/var/lib/postgresql/data
+    networks:
+      - agro-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U admin -d preference_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  weather_postgres:
+    image: postgres:15
+    container_name: agro_weather_postgres
+    environment:
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: admin
+      POSTGRES_DB: weather_db
+    ports:
+      - "5438:5432"
+    volumes:
+      - weather_postgres_data:/var/lib/postgresql/data
+    networks:
+      - agro-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U admin -d weather_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  notification_postgres:
+    image: postgres:15
+    container_name: agro_notification_postgres
+    environment:
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: admin
+      POSTGRES_DB: notification_db
+    ports:
+      - "5439:5432"
+    volumes:
+      - notification_postgres_data:/var/lib/postgresql/data
+    networks:
+      - agro-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U admin -d notification_db"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -58,13 +154,13 @@ services:
       - "3001:3001"
     environment:
       - NODE_ENV=production
-      - DB_HOST=postgres
+      - DB_HOST=user_postgres
       - DB_PORT=5432
       - DB_USER=admin
       - DB_PASSWORD=admin
-      - DB_NAME=agro_alertas
+      - DB_NAME=user_db
     depends_on:
-      postgres:
+      user_postgres:
         condition: service_healthy
     networks:
       - agro-network
@@ -80,6 +176,14 @@ services:
       - "3002:3002"
     environment:
       - NODE_ENV=production
+      - DB_HOST=weather_postgres
+      - DB_PORT=5432
+      - DB_USER=admin
+      - DB_PASSWORD=admin
+      - DB_NAME=weather_db
+    depends_on:
+      weather_postgres:
+        condition: service_healthy
     env_file:
       - ./microservices/.env
     networks:
@@ -98,13 +202,20 @@ services:
       - "3003:3003"
     environment:
       - NODE_ENV=production
+      - DB_HOST=notification_postgres
+      - DB_PORT=5432
+      - DB_USER=admin
+      - DB_PASSWORD=admin
+      - DB_NAME=notification_db
+    depends_on:
+      notification_postgres:
+        condition: service_healthy
     env_file:
       - ./microservices/.env
     networks:
       - agro-network
     restart: unless-stopped
 
-  # Alert Service
   alert-service:
     build:
       context: ./microservices/services/alert-service
@@ -114,17 +225,31 @@ services:
       - "3004:3004"
     environment:
       - NODE_ENV=production
+      - DB_HOST=alert_postgres
+      - DB_PORT=5432
+      - DB_USER=admin
+      - DB_PASSWORD=admin
+      - DB_NAME=alert_db
       - WEATHER_SERVICE_HOST=weather-service
       - NOTIFICATION_SERVICE_HOST=notification-service
     depends_on:
-      - weather-service
-      - notification-service
+      alert_postgres:
+        condition: service_healthy
+      weather-service:
+        condition: service_started
+      notification-service:
+        condition: service_started
     networks:
       - agro-network
     restart: unless-stopped
 
 volumes:
-  postgres_data:
+  user_postgres_data:
+  alert_postgres_data:
+  log_postgres_data:
+  preference_postgres_data:
+  weather_postgres_data:
+  notification_postgres_data:
 
 networks:
   agro-network:

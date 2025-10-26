@@ -13,21 +13,19 @@ exports.AlertCanal = exports.EstadoEnvio = exports.TipoCanal = void 0;
 const typeorm_1 = require("typeorm");
 var TipoCanal;
 (function (TipoCanal) {
-    TipoCanal["EMAIL"] = "email";
+    TipoCanal["TELEGRAM"] = "telegram";
+    TipoCanal["GMAIL"] = "gmail";
     TipoCanal["SMS"] = "sms";
-    TipoCanal["PUSH"] = "push";
-    TipoCanal["WEBHOOK"] = "webhook";
-})(TipoCanal || (exports.TipoCanal = TipoCanal = {}));
+})(TipoCanal = exports.TipoCanal || (exports.TipoCanal = {}));
 var EstadoEnvio;
 (function (EstadoEnvio) {
     EstadoEnvio["PENDIENTE"] = "pendiente";
     EstadoEnvio["ENVIADO"] = "enviado";
     EstadoEnvio["FALLIDO"] = "fallido";
     EstadoEnvio["ENTREGADO"] = "entregado";
-})(EstadoEnvio || (exports.EstadoEnvio = EstadoEnvio = {}));
+})(EstadoEnvio = exports.EstadoEnvio || (exports.EstadoEnvio = {}));
 let AlertCanal = class AlertCanal {
 };
-exports.AlertCanal = AlertCanal;
 __decorate([
     (0, typeorm_1.PrimaryGeneratedColumn)(),
     __metadata("design:type", Number)
@@ -76,7 +74,8 @@ __decorate([
     (0, typeorm_1.CreateDateColumn)(),
     __metadata("design:type", Date)
 ], AlertCanal.prototype, "createdAt", void 0);
-exports.AlertCanal = AlertCanal = __decorate([
+AlertCanal = __decorate([
     (0, typeorm_1.Entity)("alert_channels")
 ], AlertCanal);
+exports.AlertCanal = AlertCanal;
 //# sourceMappingURL=alert-canal.entity.js.map

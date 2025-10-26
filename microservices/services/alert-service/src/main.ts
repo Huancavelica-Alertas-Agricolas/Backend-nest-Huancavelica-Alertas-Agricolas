@@ -4,16 +4,21 @@ import { AppModule } from './app.module';
 import { Logger } from '@nestjs/common';
 
 async function bootstrap() {
-  const app = await NestFactory.createMicroservice<MicroserviceOptions>(AppModule, {
-    transport: Transport.TCP,
-    options: {
-      host: '0.0.0.0',
-      port: parseInt(process.env.PORT) || 3004,
+  const logger = new Logger('AlertService');
+
+  const app = await NestFactory.create(AppModule, {
+    logger: {
+      log: (msg) => logger.log(msg),
+      error: (msg, trace) => logger.error(msg, trace),
+      warn: (msg) => logger.warn(msg),
+      debug: (msg) => logger.debug(msg),
+      verbose: (msg) => logger.verbose(msg),
     },
   });
 
-  await app.listen();
-  Logger.log('🚨 Alert Service is listening on port 3004');
+  const port = process.env.PORT || 3001;
+  await app.listen(port);
+  logger.log(`🚨 Alert Service is listening on port ${port}`);
 }
 
 bootstrap();

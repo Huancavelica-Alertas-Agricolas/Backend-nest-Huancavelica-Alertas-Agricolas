@@ -3,6 +3,7 @@ import { MessagePattern, Payload } from '@nestjs/microservices';
 import { UserService } from './user.service';
 import { User } from './entities/user.entity';
 import { AlertaService } from './alerta.service';
+import { CreateUserDto } from './dto/create-user.dto';
 
 @Controller()
 export class UserController {
@@ -15,15 +16,27 @@ export class UserController {
 
   // User operations
   @MessagePattern('create_user')
-  async createUser(@Payload() userData: unknown) {
+  async createUser(@Payload() userData: CreateUserDto) {
     this.logger.log('Creating user:', userData);
-    return await this.userService.create(userData as Partial<User>);
+    return await this.userService.create(userData);
   }
 
   @MessagePattern('get_user')
   async getUser(@Payload() id: number) {
     this.logger.log(`Getting user with id: ${id}`);
     return await this.userService.findOne(id);
+  }
+
+  @MessagePattern('get_user_by_code')
+  async getUserByCode(@Payload() code: string) {
+    this.logger.log(`Getting user by code: ${code}`);
+    return await this.userService.findByCode(code);
+  }
+
+  @MessagePattern('get_user_by_email')
+  async getUserByEmail(@Payload() email: string) {
+    this.logger.log(`Getting user by email: ${email}`);
+    return await this.userService.findByEmail(email);
   }
 
   @MessagePattern('get_all_users')

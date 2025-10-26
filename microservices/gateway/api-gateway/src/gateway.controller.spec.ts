@@ -64,14 +64,28 @@ describe('GatewayController', () => {
 
   describe('createUser', () => {
     it('should create a user through user service', async () => {
-      const userData = { name: 'Test User', email: 'test@example.com' };
-      const expectedResult = { id: 1, ...userData };
-      
+      const userData = {
+        name: 'Test User',
+        email: 'test@example.com',
+        code: undefined,
+        dni: undefined,
+        documento: undefined,
+        ciudad: undefined,
+        provincia: undefined,
+        ubicacion: undefined,
+      };
+      const payload = {
+        ...userData,
+        code: userData.code || userData.dni || userData.documento || userData.email,
+        ciudad: userData.ciudad || userData.provincia || userData.ubicacion || 'Desconocido',
+      };
+      const expectedResult = { id: 1, ...payload };
+
       mockClientProxy.send.mockReturnValue(of(expectedResult));
 
       const result = await controller.createUser(userData);
-      
-      expect(mockClientProxy.send).toHaveBeenCalledWith('create_user', userData);
+
+      expect(mockClientProxy.send).toHaveBeenCalledWith('create_user', payload);
       expect(result).toEqual(expectedResult);
     });
   });

@@ -8,14 +8,14 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.AppModule = void 0;
 const common_1 = require("@nestjs/common");
+const nestjs_prometheus_1 = require("@willsoto/nestjs-prometheus");
 const microservices_1 = require("@nestjs/microservices");
 const config_1 = require("@nestjs/config");
 const alert_controller_1 = require("./alert.controller");
 const alert_service_1 = require("./alert.service");
 let AppModule = class AppModule {
 };
-exports.AppModule = AppModule;
-exports.AppModule = AppModule = __decorate([
+AppModule = __decorate([
     (0, common_1.Module)({
         imports: [
             config_1.ConfigModule.forRoot({ isGlobal: true }),
@@ -36,10 +36,20 @@ exports.AppModule = AppModule = __decorate([
                         port: parseInt(process.env.NOTIFICATION_SERVICE_PORT) || 3003
                     },
                 },
+                {
+                    name: 'USER_SERVICE',
+                    transport: microservices_1.Transport.TCP,
+                    options: {
+                        host: process.env.USER_SERVICE_HOST || 'localhost',
+                        port: parseInt(process.env.USER_SERVICE_PORT) || 3001,
+                    },
+                },
             ]),
+            nestjs_prometheus_1.PrometheusModule.register(),
         ],
         controllers: [alert_controller_1.AlertController],
         providers: [alert_service_1.AlertService],
     })
 ], AppModule);
+exports.AppModule = AppModule;
 //# sourceMappingURL=app.module.js.map

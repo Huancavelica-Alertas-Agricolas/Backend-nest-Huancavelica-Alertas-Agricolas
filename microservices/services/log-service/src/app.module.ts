@@ -8,6 +8,7 @@ if (!global.crypto) {
 }
 
 import { Module } from '@nestjs/common';
+import { PrometheusModule } from '@willsoto/nestjs-prometheus';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { SnakeNamingStrategy } from 'typeorm-naming-strategies';
@@ -35,6 +36,7 @@ import { LogEntry } from './entities/log-entry.entity';
       inject: [ConfigService],
     }),
     TypeOrmModule.forFeature([LogEntry]),
+    PrometheusModule.register(),
   ],
   controllers: [LogController],
   providers: [LogService],

@@ -25,7 +25,8 @@
     "logs:alert": "docker-compose logs -f alert-service",
     
     "clean": "docker-compose down -v && docker system prune -f",
-    "reset": "npm run clean && npm run build && npm run start"
+    "reset": "npm run clean && npm run build && npm run start",
+  "test:all": "npm --prefix microservices/services/user-service test && npm --prefix microservices/services/alert-service test && npm --prefix microservices/services/weather-service test && npm --prefix microservices/services/notification-service test && npm --prefix microservices/services/preference-service test && npm --prefix microservices/services/log-service test && npm --prefix microservices/gateway/api-gateway test"
   },
   "keywords": ["agro-alertas", "microservices", "nestjs", "agriculture", "weather", "alerts"],
   "author": "Agro-Alertas Team",

@@ -1,7 +1,9 @@
 import { NestFactory } from '@nestjs/core';
 import { MicroserviceOptions, Transport } from '@nestjs/microservices';
 import { AppModule } from './app.module';
-import { Logger } from '@nestjs/common';
+import logger from './logger';
+import { ValidationPipe } from '@nestjs/common';
+import { AllExceptionsFilter } from './all-exceptions.filter';
 
 async function bootstrap() {
   const app = await NestFactory.createMicroservice<MicroserviceOptions>(
@@ -14,9 +16,10 @@ async function bootstrap() {
       },
     },
   );
-
+  app.useGlobalPipes(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true }));
+  app.useGlobalFilters(new AllExceptionsFilter(logger));
   await app.listen();
-  Logger.log('🚀 User Service is listening on port 3001');
+  logger.info('🚀 User Service is listening on port 3001');
 }
 
 bootstrap();

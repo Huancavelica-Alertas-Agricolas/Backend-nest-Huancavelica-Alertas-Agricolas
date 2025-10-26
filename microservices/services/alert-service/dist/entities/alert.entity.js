@@ -18,17 +18,16 @@ var TipoAlerta;
     TipoAlerta["HELADA"] = "helada";
     TipoAlerta["SEQUIA"] = "sequia";
     TipoAlerta["VIENTO"] = "viento";
-})(TipoAlerta || (exports.TipoAlerta = TipoAlerta = {}));
+})(TipoAlerta = exports.TipoAlerta || (exports.TipoAlerta = {}));
 var EstadoAlerta;
 (function (EstadoAlerta) {
     EstadoAlerta["ACTIVA"] = "activa";
     EstadoAlerta["ENVIADA"] = "enviada";
     EstadoAlerta["CANCELADA"] = "cancelada";
     EstadoAlerta["EXPIRADA"] = "expirada";
-})(EstadoAlerta || (exports.EstadoAlerta = EstadoAlerta = {}));
+})(EstadoAlerta = exports.EstadoAlerta || (exports.EstadoAlerta = {}));
 let Alert = class Alert {
 };
-exports.Alert = Alert;
 __decorate([
     (0, typeorm_1.PrimaryGeneratedColumn)(),
     __metadata("design:type", Number)
@@ -85,7 +84,8 @@ __decorate([
     (0, typeorm_1.CreateDateColumn)(),
     __metadata("design:type", Date)
 ], Alert.prototype, "createdAt", void 0);
-exports.Alert = Alert = __decorate([
+Alert = __decorate([
     (0, typeorm_1.Entity)("alerts")
 ], Alert);
+exports.Alert = Alert;
 //# sourceMappingURL=alert.entity.js.map

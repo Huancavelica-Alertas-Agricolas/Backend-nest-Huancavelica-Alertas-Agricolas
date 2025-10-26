@@ -10,6 +10,7 @@ if (!global.crypto) {
 }
 
 import { Module } from '@nestjs/common';
+import { PrometheusModule } from '@willsoto/nestjs-prometheus';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { SnakeNamingStrategy } from 'typeorm-naming-strategies';
@@ -40,6 +41,7 @@ import { User } from './entities/user.entity';
       inject: [ConfigService],
     }),
     TypeOrmModule.forFeature([User]),
+    PrometheusModule.register(),
   ],
   controllers: [UserController],
   providers: [UserService, AlertaService],
