@@ -1,19 +1,18 @@
-import { Module } from '@nestjs/common';
+import { Module, MiddlewareConsumer, RequestMethod } from '@nestjs/common';
 import { PrometheusModule } from '@willsoto/nestjs-prometheus';
 import { ClientsModule, Transport } from '@nestjs/microservices';
 import { ConfigModule } from '@nestjs/config';
 import { ThrottlerModule } from '@nestjs/throttler';
+import { APP_GUARD } from '@nestjs/core';
 import { GatewayController } from './gateway.controller';
+import { throttlerConfig } from './config/security.config';
+import { CustomThrottlerGuard } from './guards/custom-throttler.guard';
+import { SecurityMiddleware } from './middleware/security.middleware';
 
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
-    ThrottlerModule.forRoot([
-      {
-        ttl: 60000, // 1 minute
-        limit: 100, // 100 requests per minute
-      },
-    ]),
+    ThrottlerModule.forRoot(throttlerConfig),
     ClientsModule.register([
       {
         name: 'USER_SERVICE',
@@ -67,5 +66,17 @@ import { GatewayController } from './gateway.controller';
     PrometheusModule.register(),
   ],
   controllers: [GatewayController],
+  providers: [
+    {
+      provide: APP_GUARD,
+      useClass: CustomThrottlerGuard,
+    },
+  ],
 })
-export class AppModule {}
+export class AppModule {
+  configure(consumer: MiddlewareConsumer) {
+    consumer
+      .apply(SecurityMiddleware)
+      .forRoutes({ path: '*', method: RequestMethod.ALL });
+  }
+}

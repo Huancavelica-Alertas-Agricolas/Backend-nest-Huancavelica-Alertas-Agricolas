@@ -4,13 +4,20 @@ import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import helmet from 'helmet';
+import { helmetConfig } from './config/security.config';
+import { SecurityLoggingInterceptor } from './interceptors/security-logging.interceptor';
 
 async function bootstrap() {
   const logger = new Logger('API-Gateway');
   const app = await NestFactory.create(AppModule, { logger });
   app.useGlobalPipes(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true }));
   app.useGlobalFilters(new AllExceptionsFilter(console));
-  app.use(helmet());
+  app.useGlobalInterceptors(new SecurityLoggingInterceptor());
+  
+  // Security headers with Helmet
+  app.use(helmet(helmetConfig));
+  
+  // CORS configuration
   app.enableCors({
     origin: ['http://localhost:3000'],
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
