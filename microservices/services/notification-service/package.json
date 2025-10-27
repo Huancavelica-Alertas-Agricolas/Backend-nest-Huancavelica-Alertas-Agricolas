@@ -25,7 +25,7 @@
     "@nestjs/common": "^11.1.6",
     "@nestjs/config": "^4.0.2",
     "@nestjs/core": "^11.1.6",
-    "@nestjs/microservices": "^11.1.6",
+    "@nestjs/microservices": "^11.1.8",
     "@types/jest": "^30.0.0",
     "@types/nodemailer": "^7.0.1",
     "agro-alertas-microservices": "file:../../..",
